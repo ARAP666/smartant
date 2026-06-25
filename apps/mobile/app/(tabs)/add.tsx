@@ -19,6 +19,7 @@ import {
   confirmPendingMovement,
   createIncome,
   deleteExpense,
+  detectReceipt,
   evaluatePendingMovement,
   updateExpense,
 } from "@/shared/api/client";
@@ -171,6 +172,25 @@ export default function AddScreen() {
     setReceiptPhoto(photo);
     setFormError("");
   }
+  const detect = useMutation({
+    mutationFn: async () => {
+      if (!receiptPhoto) {
+        setFormError("Selecciona una foto primero");
+        return null;
+      }
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      setFormError("");
+      return detectReceipt(token, receiptPhoto);
+    },
+    onSuccess: (data) => {
+      if (!data) return;
+      setExpenseAmount(data.detected.amountMinor);
+      setExpenseDate(data.detected.date);
+      setExpenseDescription(data.detected.description);
+      setExpenseCategory(data.detected.category);
+    },
+  });
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
@@ -228,6 +248,18 @@ export default function AddScreen() {
         </Pressable>
       </View>
       {receiptPhoto ? <Text>Foto lista: {receiptPhoto.uri}</Text> : null}
+      {receiptPhoto ? (
+        <Pressable
+          accessibilityRole="button"
+          disabled={detect.isPending}
+          onPress={() => detect.mutate()}
+          style={[styles.button, detect.isPending && styles.disabled]}
+        >
+          <Text style={styles.buttonText}>
+            {detect.isPending ? "Detectando..." : "Detectar recibo"}
+          </Text>
+        </Pressable>
+      ) : null}
       <TextInput
         accessibilityLabel="Monto gasto"
         keyboardType="number-pad"
@@ -319,6 +351,9 @@ export default function AddScreen() {
       ) : null}
       {confirm.isError ? (
         <Text style={styles.error}>{confirm.error.message}</Text>
+      ) : null}
+      {detect.isError ? (
+        <Text style={styles.error}>{detect.error.message}</Text>
       ) : null}
       {editExpense.isError ? (
         <Text style={styles.error}>{editExpense.error.message}</Text>

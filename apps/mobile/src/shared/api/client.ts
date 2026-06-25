@@ -12,6 +12,10 @@ import type {
   PendingMovementInput,
 } from "@/features/pending-movements/pending-movement-schema";
 import type { ProfileInput } from "@/features/profile/profile-schema";
+import type {
+  ReceiptDetection,
+  ReceiptPhoto,
+} from "@/features/receipts/receipt-photo";
 import type { Salary, SalaryInput } from "@/features/salary/salary-schema";
 import type {
   SavingsGoal,
@@ -166,6 +170,20 @@ export async function confirmPendingMovement(
       }),
     },
   );
+}
+
+export async function detectReceipt(token: string, photo: ReceiptPhoto) {
+  const formData = new FormData();
+  formData.append("receipt", {
+    uri: photo.uri,
+    name: photo.fileName ?? "receipt.jpg",
+    type: photo.mimeType ?? "image/jpeg",
+  } as unknown as Blob);
+  return request<ReceiptDetection>("/api/v1/receipts/detect", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
 }
 
 export async function updateExpense(

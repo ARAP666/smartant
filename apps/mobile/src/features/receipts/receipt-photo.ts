@@ -2,6 +2,7 @@ export type ReceiptPhoto = {
   uri: string;
   mimeType?: string | null;
   fileSize?: number | null;
+  fileName?: string | null;
 };
 
 const maxReceiptPhotoBytes = 5 * 1024 * 1024;
@@ -16,3 +17,21 @@ export function validateReceiptPhoto(photo: ReceiptPhoto) {
   }
   return "";
 }
+
+export type ReceiptDetection = {
+  pendingMovement: {
+    id: string;
+    amountMinor: string;
+    date: string;
+    description: string;
+    category: string;
+    status: string;
+  };
+  detected: {
+    amountMinor: string;
+    date: string;
+    description: string;
+    category: string;
+    confidence: { amount: boolean; date: boolean; description: boolean };
+  };
+};

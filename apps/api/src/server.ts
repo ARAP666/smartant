@@ -24,6 +24,7 @@ import {
   updateExpense,
 } from "./features/pending-movements/pending-movements.js";
 import { getProfile, updateProfile } from "./features/profile/profile.js";
+import { detectReceiptPendingMovement } from "./features/receipts/receipts.js";
 import {
   deleteSalary,
   generateSalaryIncome,
@@ -108,6 +109,10 @@ const app = createApp(
   {
     listMovementHistory: (userId, query) =>
       listMovementHistory(database, userId, query),
+  },
+  {
+    detectReceiptPendingMovement: (userId, input) =>
+      detectReceiptPendingMovement(database, userId, input),
   },
 );
 

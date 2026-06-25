@@ -11,12 +11,14 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@smart-ant/finance": "*",
     "@prisma/adapter-pg": "^7.0.0",
     "@prisma/client": "^7.0.0",
+    "@smart-ant/finance": "*",
+    "@types/multer": "^2.1.0",
     "argon2": "^0.44.0",
     "dotenv": "^17.0.0",
     "express": "^5.0.0",
+    "multer": "^2.2.0",
     "pg": "^8.0.0",
     "zod": "^4.0.0"
   },

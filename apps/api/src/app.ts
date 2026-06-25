@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import express from "express";
+import multer from "multer";
 import { z } from "zod";
 import { type LoginInput, loginSchema } from "./features/auth/login.js";
 import {
@@ -25,6 +26,11 @@ import {
   type ProfileInput,
   profileSchema,
 } from "./features/profile/profile.js";
+import {
+  invalidReceiptFile,
+  type ReceiptDetectionInput,
+  receiptDetectionSchema,
+} from "./features/receipts/receipts.js";
 import {
   type SalaryGenerationInput,
   type SalaryInput,
@@ -158,6 +164,17 @@ type HistoryMovementDto = {
   category: string | null;
 };
 
+type ReceiptDetectionDto = {
+  pendingMovement: PendingMovementDto;
+  detected: {
+    amountMinor: string;
+    date: string;
+    description: string;
+    category: string;
+    confidence: { amount: boolean; date: boolean; description: boolean };
+  };
+};
+
 export type IncomeHandlers = {
   listIncomes: (userId: string) => Promise<{ incomes: IncomeDto[] }>;
   createIncome: (
@@ -275,6 +292,13 @@ export type HistoryHandlers = {
   }>;
 };
 
+export type ReceiptHandlers = {
+  detectReceiptPendingMovement: (
+    userId: string,
+    input: ReceiptDetectionInput,
+  ) => Promise<ReceiptDetectionDto>;
+};
+
 const unavailable: AuthHandlers = {
   register: async () => {
     throw new AppError(500, "NOT_CONFIGURED", "Registration unavailable");
@@ -390,6 +414,12 @@ const unavailableHistory: HistoryHandlers = {
   },
 };
 
+const unavailableReceipts: ReceiptHandlers = {
+  detectReceiptPendingMovement: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Receipts unavailable");
+  },
+};
+
 export function createApp(
   checkDatabase: () => Promise<void>,
   auth: Partial<AuthHandlers> | AuthHandlers["register"] = {},
@@ -401,6 +431,7 @@ export function createApp(
   pendingMovements: Partial<PendingMovementHandlers> = {},
   summary: Partial<SummaryHandlers> = {},
   history: Partial<HistoryHandlers> = {},
+  receipts: Partial<ReceiptHandlers> = {},
 ) {
   const handlers =
     typeof auth === "function"
@@ -420,7 +451,12 @@ export function createApp(
   };
   const summaryHandlers = { ...unavailableSummary, ...summary };
   const historyHandlers = { ...unavailableHistory, ...history };
+  const receiptHandlers = { ...unavailableReceipts, ...receipts };
   const app = express();
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 },
+  });
   app.use(express.json());
 
   app.get("/api/v1/health", async (_request, response) => {
@@ -853,6 +889,41 @@ export function createApp(
     }
   });
 
+  app.post(
+    "/api/v1/receipts/detect",
+    upload.single("receipt"),
+    async (request, response) => {
+      try {
+        const user = await authenticateRequest(request, handlers);
+        if (!request.file) {
+          sendError(response, invalidReceiptFile());
+          return;
+        }
+        const parsed = receiptDetectionSchema.safeParse({
+          originalName: request.file.originalname,
+          mimeType: request.file.mimetype,
+          size: request.file.size,
+          text:
+            typeof request.body.text === "string"
+              ? request.body.text
+              : undefined,
+        });
+        if (!parsed.success) {
+          sendError(response, validationError(parsed.error));
+          return;
+        }
+        response.status(201).json({
+          data: await receiptHandlers.detectReceiptPendingMovement(
+            user.id,
+            parsed.data,
+          ),
+        });
+      } catch (error) {
+        sendError(response, error);
+      }
+    },
+  );
+
   app.get("/api/v1/salary", async (request, response) => {
     try {
       const user = await authenticateRequest(request, handlers);
@@ -922,6 +993,20 @@ export function createApp(
       sendError(response, error);
     }
   });
+
+  app.use(
+    (
+      error: unknown,
+      _request: express.Request,
+      response: express.Response,
+      _next: express.NextFunction,
+    ) => {
+      sendError(
+        response,
+        error instanceof multer.MulterError ? invalidReceiptFile() : error,
+      );
+    },
+  );
 
   return app;
 }
