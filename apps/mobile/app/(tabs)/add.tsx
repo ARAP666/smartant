@@ -139,6 +139,11 @@ export default function AddScreen() {
       {evaluate.data ? (
         <Text>Saldo gastable: {evaluate.data.evaluation.spendableBalance}</Text>
       ) : null}
+      {evaluate.data?.evaluation.alerts?.map((alert) => (
+        <Text key={`${alert.severity}-${alert.rule}`} style={styles.alert}>
+          {alert.severity}: {alert.rule} - {alert.spendableBalance}
+        </Text>
+      ))}
       {formError ? <Text style={styles.error}>{formError}</Text> : null}
       {save.isError ? (
         <Text style={styles.error}>{save.error.message}</Text>
@@ -170,6 +175,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   label: { color: "#173F35", fontWeight: "700" },
+  alert: { color: "#173F35", fontWeight: "700" },
   screen: { gap: 12, padding: 24 },
   title: { color: "#173F35", fontSize: 24, fontWeight: "700" },
 });

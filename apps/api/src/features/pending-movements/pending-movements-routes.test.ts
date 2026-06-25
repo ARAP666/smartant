@@ -15,6 +15,14 @@ const evaluation = {
   baseBalance: "88000",
   spendableBalance: "38000",
   margins: [{ kind: "BUDGET", amountMinor: "38000", id: "budget-id" }],
+  alerts: [
+    {
+      severity: "INFO",
+      rule: "Budget:General",
+      amountMinor: "12000",
+      spendableBalance: "38000",
+    },
+  ],
 };
 
 describe("pending movement routes", () => {

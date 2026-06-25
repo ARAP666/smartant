@@ -1,4 +1,7 @@
-import { calculateSpendableBalance } from "@smart-ant/finance";
+import {
+  calculateSpendableBalance,
+  createFinancialAlerts,
+} from "@smart-ant/finance";
 import { z } from "zod";
 import type { PrismaClient } from "../../generated/prisma/client.js";
 
@@ -59,6 +62,15 @@ export async function evaluatePendingMovement(
       margins: evaluation.margins.map((margin) => ({
         ...margin,
         amountMinor: margin.amountMinor.toString(),
+      })),
+      alerts: createFinancialAlerts({
+        spendableBalance: evaluation.spendableBalance,
+        expenseAmountMinor: input.amountMinor,
+        margins: evaluation.margins,
+      }).map((alert) => ({
+        ...alert,
+        amountMinor: alert.amountMinor.toString(),
+        spendableBalance: alert.spendableBalance.toString(),
       })),
     },
   };

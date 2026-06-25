@@ -15,5 +15,11 @@ export type PendingMovementEvaluation = {
     baseBalance: string;
     spendableBalance: string;
     margins: Array<{ kind: string; amountMinor: string }>;
+    alerts?: Array<{
+      severity: string;
+      rule: string;
+      amountMinor: string;
+      spendableBalance: string;
+    }>;
   };
 };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateSpendableBalance } from "./index";
+import { calculateSpendableBalance, createFinancialAlerts } from "./index";
 
 describe("calculateSpendableBalance", () => {
   it("uses the most conservative margin without going below zero", () => {
@@ -39,5 +39,29 @@ describe("calculateSpendableBalance", () => {
       "food",
     ]);
     expect(result.spendableBalance).toBe(70_000n);
+  });
+
+  it("creates a blocking alert from the limiting rule", () => {
+    const result = calculateSpendableBalance({
+      incomes: [{ amountMinor: 100_000n }],
+      expenses: [{ amountMinor: 80_000n, category: "Comida" }],
+      budgets: [{ id: "food", amountMinor: 50_000n, category: "Comida" }],
+      savingsGoals: [],
+      category: "Comida",
+    });
+    const alerts = createFinancialAlerts({
+      spendableBalance: result.spendableBalance,
+      expenseAmountMinor: 80_000n,
+      margins: result.margins,
+    });
+
+    expect(alerts).toEqual([
+      {
+        severity: "BLOCKING",
+        rule: "Budget:Comida",
+        amountMinor: 80_000n,
+        spendableBalance: 0n,
+      },
+    ]);
   });
 });

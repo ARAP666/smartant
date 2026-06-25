@@ -31,6 +31,13 @@ export type SpendableMargin = {
   amountMinor: bigint;
 };
 
+export type FinancialAlert = {
+  severity: "INFO" | "PREVENTIVE" | "BLOCKING";
+  rule: string;
+  amountMinor: bigint;
+  spendableBalance: bigint;
+};
+
 export function calculateSpendableBalance(input: SpendableBalanceInput) {
   const incomeTotal = sum(input.incomes);
   const expenseTotal = sum(input.expenses);
@@ -52,6 +59,31 @@ export function calculateSpendableBalance(input: SpendableBalanceInput) {
     margins,
     spendableBalance,
   };
+}
+
+export function createFinancialAlerts(input: {
+  spendableBalance: bigint;
+  expenseAmountMinor: bigint;
+  margins: SpendableMargin[];
+}): FinancialAlert[] {
+  const limitingMargin = input.margins.reduce((lowest, margin) =>
+    margin.amountMinor < lowest.amountMinor ? margin : lowest,
+  );
+  const severity =
+    input.spendableBalance <= 0n
+      ? "BLOCKING"
+      : input.spendableBalance < input.expenseAmountMinor
+        ? "PREVENTIVE"
+        : "INFO";
+
+  return [
+    {
+      severity,
+      rule: describeRule(limitingMargin),
+      amountMinor: input.expenseAmountMinor,
+      spendableBalance: input.spendableBalance,
+    },
+  ];
 }
 
 function budgetMargins(input: SpendableBalanceInput): SpendableMargin[] {
@@ -112,4 +144,12 @@ function appliesToBudget(
   expenseCategory: string | null | undefined,
 ) {
   return !budgetCategory || budgetCategory === expenseCategory;
+}
+
+function describeRule(margin: SpendableMargin) {
+  if (margin.kind === "BUDGET") {
+    return margin.category ? `Budget:${margin.category}` : "Budget:General";
+  }
+  if (margin.kind === "SAVINGS_GOAL") return "SavingsGoal";
+  return "BaseBalance";
 }

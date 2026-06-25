@@ -95,6 +95,12 @@ type EvaluationDto = {
     category?: string | null;
     amountMinor: string;
   }>;
+  alerts?: Array<{
+    severity: string;
+    rule: string;
+    amountMinor: string;
+    spendableBalance: string;
+  }>;
 };
 
 type SalaryDto = {
