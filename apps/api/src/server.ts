@@ -10,6 +10,7 @@ import {
   listBudgets,
   updateBudget,
 } from "./features/budgets/budgets.js";
+import { listMovementHistory } from "./features/history/history.js";
 import {
   createIncome,
   deleteIncome,
@@ -98,6 +99,10 @@ const app = createApp(
   {
     getFinancialSummary: (userId, period) =>
       getFinancialSummary(database, userId, period),
+  },
+  {
+    listMovementHistory: (userId, query) =>
+      listMovementHistory(database, userId, query),
   },
 );
 

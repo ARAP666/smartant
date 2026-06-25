@@ -1,6 +1,10 @@
 import type { LoginInput } from "@/features/auth/login-schema";
 import type { RegisterInput } from "@/features/auth/register-schema";
 import type { Budget, BudgetInput } from "@/features/budgets/budget-schema";
+import type {
+  MovementHistory,
+  MovementHistoryQuery,
+} from "@/features/history/history-schema";
 import type { Income, IncomeInput } from "@/features/incomes/income-schema";
 import type {
   ConfirmedExpense,
@@ -109,6 +113,19 @@ export async function updateIncome(
 export async function deleteIncome(token: string, id: string) {
   await request<void>(`/api/v1/incomes/${id}`, {
     method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function fetchMovementHistory(
+  token: string,
+  query: MovementHistoryQuery,
+) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== "") search.set(key, String(value));
+  }
+  return request<MovementHistory>(`/api/v1/history?${search.toString()}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 }

@@ -8,6 +8,10 @@ import {
 } from "./features/auth/register.js";
 import { getBearerToken } from "./features/auth/session.js";
 import { type BudgetInput, budgetSchema } from "./features/budgets/budgets.js";
+import {
+  type HistoryQuery,
+  historyQuerySchema,
+} from "./features/history/history.js";
 import { type IncomeInput, incomeSchema } from "./features/incomes/incomes.js";
 import {
   type ExpenseUpdateInput,
@@ -139,6 +143,15 @@ type FinancialSummaryDto = {
   empty: boolean;
 };
 
+type HistoryMovementDto = {
+  id: string;
+  type: "INCOME" | "EXPENSE";
+  amountMinor: string;
+  date: string;
+  description: string;
+  category: string | null;
+};
+
 export type IncomeHandlers = {
   listIncomes: (userId: string) => Promise<{ incomes: IncomeDto[] }>;
   createIncome: (
@@ -232,6 +245,21 @@ export type SummaryHandlers = {
     userId: string,
     period: SummaryPeriod,
   ) => Promise<{ summary: FinancialSummaryDto }>;
+};
+
+export type HistoryHandlers = {
+  listMovementHistory: (
+    userId: string,
+    query: HistoryQuery,
+  ) => Promise<{
+    movements: HistoryMovementDto[];
+    page: {
+      offset: number;
+      limit: number;
+      total: number;
+      nextOffset: number | null;
+    };
+  }>;
 };
 
 const unavailable: AuthHandlers = {
@@ -340,6 +368,12 @@ const unavailableSummary: SummaryHandlers = {
   },
 };
 
+const unavailableHistory: HistoryHandlers = {
+  listMovementHistory: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "History unavailable");
+  },
+};
+
 export function createApp(
   checkDatabase: () => Promise<void>,
   auth: Partial<AuthHandlers> | AuthHandlers["register"] = {},
@@ -350,6 +384,7 @@ export function createApp(
   savingsGoals: Partial<SavingsGoalHandlers> = {},
   pendingMovements: Partial<PendingMovementHandlers> = {},
   summary: Partial<SummaryHandlers> = {},
+  history: Partial<HistoryHandlers> = {},
 ) {
   const handlers =
     typeof auth === "function"
@@ -368,6 +403,7 @@ export function createApp(
     ...pendingMovements,
   };
   const summaryHandlers = { ...unavailableSummary, ...summary };
+  const historyHandlers = { ...unavailableHistory, ...history };
   const app = express();
   app.use(express.json());
 
@@ -758,6 +794,23 @@ export function createApp(
       const user = await authenticateRequest(request, handlers);
       response.json({
         data: await summaryHandlers.getFinancialSummary(user.id, parsed.data),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.get("/api/v1/history", async (request, response) => {
+    const parsed = historyQuerySchema.safeParse(request.query);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({
+        data: await historyHandlers.listMovementHistory(user.id, parsed.data),
       });
     } catch (error) {
       sendError(response, error);

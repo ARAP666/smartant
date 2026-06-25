@@ -1,72 +1,163 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import type { MovementType } from "@/features/history/history-schema";
 import {
   type IncomeInput,
   incomeSchema,
 } from "@/features/incomes/income-schema";
-import { deleteIncome, fetchIncomes, updateIncome } from "@/shared/api/client";
+import { pendingMovementSchema } from "@/features/pending-movements/pending-movement-schema";
+import {
+  deleteExpense,
+  deleteIncome,
+  fetchMovementHistory,
+  updateExpense,
+  updateIncome,
+} from "@/shared/api/client";
 import { getSessionToken } from "@/shared/auth/session";
+
+const pageSize = 20;
 
 export default function MovementsScreen() {
   const queryClient = useQueryClient();
+  const [offset, setOffset] = useState(0);
+  const [type, setType] = useState<MovementType | undefined>();
+  const [category, setCategory] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
   const [editingId, setEditingId] = useState("");
-  const [draft, setDraft] = useState<IncomeInput>({
+  const [editingType, setEditingType] = useState<MovementType | undefined>();
+  const [draft, setDraft] = useState<IncomeInput & { category?: string }>({
     amountMinor: "",
     date: "",
     description: "",
+    category: "",
   });
   const [formError, setFormError] = useState("");
-  const incomes = useQuery({
-    queryKey: ["incomes"],
+  const history = useQuery({
+    queryKey: ["history", offset, type, category, from, to],
     queryFn: async () => {
       const token = await getSessionToken();
       if (!token) throw new Error("Sesion requerida");
-      return fetchIncomes(token);
+      return fetchMovementHistory(token, {
+        offset,
+        limit: pageSize,
+        type,
+        category,
+        from,
+        to,
+      });
     },
-  });
-  const remove = useMutation({
-    mutationFn: async (id: string) => {
-      const token = await getSessionToken();
-      if (!token) throw new Error("Sesion requerida");
-      await deleteIncome(token, id);
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["incomes"] }),
   });
   const save = useMutation({
     mutationFn: async () => {
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      if (editingType === "EXPENSE") {
+        const parsed = pendingMovementSchema.safeParse(draft);
+        if (!parsed.success) {
+          setFormError("Revisa monto, fecha, descripcion y categoria");
+          return null;
+        }
+        setFormError("");
+        return updateExpense(token, editingId, parsed.data);
+      }
       const parsed = incomeSchema.safeParse(draft);
       if (!parsed.success) {
         setFormError("Revisa monto, fecha y descripcion");
         return null;
       }
-      const token = await getSessionToken();
-      if (!token) throw new Error("Sesion requerida");
       setFormError("");
       return updateIncome(token, editingId, parsed.data);
     },
     onSuccess: (data) => {
       if (!data) return;
-      queryClient.invalidateQueries({ queryKey: ["incomes"] });
+      queryClient.invalidateQueries({ queryKey: ["history"] });
       setEditingId("");
     },
   });
+  const remove = useMutation({
+    mutationFn: async (movement: { id: string; type: MovementType }) => {
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      if (movement.type === "EXPENSE") return deleteExpense(token, movement.id);
+      return deleteIncome(token, movement.id);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["history"] }),
+  });
 
   return (
-    <View style={styles.screen}>
+    <ScrollView contentContainerStyle={styles.screen}>
       <Text style={styles.title}>Movimientos</Text>
-      {incomes.isPending ? <Text>Cargando ingresos...</Text> : null}
-      {incomes.isError ? (
-        <Text style={styles.error}>{incomes.error.message}</Text>
+      <View style={styles.filters}>
+        <TextInput
+          accessibilityLabel="Desde"
+          onChangeText={(value) => {
+            setOffset(0);
+            setFrom(value);
+          }}
+          placeholder="Desde"
+          style={styles.input}
+          value={from}
+        />
+        <TextInput
+          accessibilityLabel="Hasta"
+          onChangeText={(value) => {
+            setOffset(0);
+            setTo(value);
+          }}
+          placeholder="Hasta"
+          style={styles.input}
+          value={to}
+        />
+        <TextInput
+          accessibilityLabel="Categoria"
+          onChangeText={(value) => {
+            setOffset(0);
+            setCategory(value);
+          }}
+          placeholder="Categoria"
+          style={styles.input}
+          value={category}
+        />
+      </View>
+      <View style={styles.actions}>
+        <FilterButton
+          active={!type}
+          label="Todos"
+          onPress={() => setType(undefined)}
+        />
+        <FilterButton
+          active={type === "INCOME"}
+          label="Ingresos"
+          onPress={() => setType("INCOME")}
+        />
+        <FilterButton
+          active={type === "EXPENSE"}
+          label="Gastos"
+          onPress={() => setType("EXPENSE")}
+        />
+      </View>
+      {history.isPending ? <Text>Cargando movimientos...</Text> : null}
+      {history.isError ? (
+        <Text style={styles.error}>{history.error.message}</Text>
       ) : null}
-      {incomes.data?.incomes.length === 0 ? <Text>No hay ingresos</Text> : null}
-      {incomes.data?.incomes.map((income) => (
-        <View key={income.id} style={styles.row}>
-          {editingId === income.id ? (
+      {history.data?.movements.length === 0 ? (
+        <Text>No hay movimientos para estos filtros</Text>
+      ) : null}
+      {history.data?.movements.map((movement) => (
+        <View key={`${movement.type}-${movement.id}`} style={styles.row}>
+          {editingId === movement.id ? (
             <View style={styles.edit}>
               <TextInput
                 accessibilityLabel="Monto menor"
-                editable={!save.isPending}
                 keyboardType="number-pad"
                 onChangeText={(amountMinor) =>
                   setDraft((current) => ({ ...current, amountMinor }))
@@ -76,7 +167,6 @@ export default function MovementsScreen() {
               />
               <TextInput
                 accessibilityLabel="Fecha"
-                editable={!save.isPending}
                 onChangeText={(date) =>
                   setDraft((current) => ({ ...current, date }))
                 }
@@ -85,17 +175,28 @@ export default function MovementsScreen() {
               />
               <TextInput
                 accessibilityLabel="Descripcion"
-                editable={!save.isPending}
                 onChangeText={(description) =>
                   setDraft((current) => ({ ...current, description }))
                 }
                 style={styles.input}
                 value={draft.description}
               />
+              {editingType === "EXPENSE" ? (
+                <TextInput
+                  accessibilityLabel="Categoria gasto"
+                  onChangeText={(nextCategory) =>
+                    setDraft((current) => ({
+                      ...current,
+                      category: nextCategory,
+                    }))
+                  }
+                  style={styles.input}
+                  value={draft.category}
+                />
+              ) : null}
               <View style={styles.actions}>
                 <Pressable
                   accessibilityRole="button"
-                  disabled={save.isPending}
                   onPress={() => save.mutate()}
                   style={styles.saveButton}
                 >
@@ -103,7 +204,6 @@ export default function MovementsScreen() {
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
-                  disabled={save.isPending}
                   onPress={() => setEditingId("")}
                   style={styles.deleteButton}
                 >
@@ -113,22 +213,24 @@ export default function MovementsScreen() {
             </View>
           ) : (
             <>
-              <View>
-                <Text style={styles.description}>{income.description}</Text>
+              <View style={styles.movement}>
+                <Text style={styles.description}>{movement.description}</Text>
                 <Text>
-                  {income.date} - {income.amountMinor}
+                  {movement.type} / {movement.date} / {movement.amountMinor}
                 </Text>
+                {movement.category ? <Text>{movement.category}</Text> : null}
               </View>
               <View style={styles.actions}>
                 <Pressable
                   accessibilityRole="button"
-                  disabled={remove.isPending}
                   onPress={() => {
-                    setEditingId(income.id);
+                    setEditingId(movement.id);
+                    setEditingType(movement.type);
                     setDraft({
-                      amountMinor: income.amountMinor,
-                      date: income.date,
-                      description: income.description,
+                      amountMinor: movement.amountMinor,
+                      date: movement.date,
+                      description: movement.description,
+                      category: movement.category ?? "",
                     });
                   }}
                   style={styles.saveButton}
@@ -137,8 +239,7 @@ export default function MovementsScreen() {
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
-                  disabled={remove.isPending}
-                  onPress={() => remove.mutate(income.id)}
+                  onPress={() => remove.mutate(movement)}
                   style={styles.deleteButton}
                 >
                   <Text style={styles.deleteText}>Eliminar</Text>
@@ -148,6 +249,27 @@ export default function MovementsScreen() {
           )}
         </View>
       ))}
+      <View style={styles.actions}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={offset === 0}
+          onPress={() => setOffset(Math.max(0, offset - pageSize))}
+          style={[styles.saveButton, offset === 0 && styles.disabled]}
+        >
+          <Text style={styles.saveText}>Anterior</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          disabled={!history.data?.page.nextOffset}
+          onPress={() => setOffset(history.data?.page.nextOffset ?? offset)}
+          style={[
+            styles.saveButton,
+            !history.data?.page.nextOffset && styles.disabled,
+          ]}
+        >
+          <Text style={styles.saveText}>Siguiente</Text>
+        </Pressable>
+      </View>
       {formError ? <Text style={styles.error}>{formError}</Text> : null}
       {remove.isError ? (
         <Text style={styles.error}>{remove.error.message}</Text>
@@ -155,12 +277,36 @@ export default function MovementsScreen() {
       {save.isError ? (
         <Text style={styles.error}>{save.error.message}</Text>
       ) : null}
-    </View>
+    </ScrollView>
+  );
+}
+
+function FilterButton({
+  active,
+  label,
+  onPress,
+}: {
+  active: boolean;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={[styles.saveButton, active && styles.activeButton]}
+    >
+      <Text style={[styles.saveText, active && styles.activeText]}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  actions: { flexDirection: "row", gap: 8 },
+  actions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  activeButton: { backgroundColor: "#176B55" },
+  activeText: { color: "#FFFFFF" },
   deleteButton: {
     alignItems: "center",
     borderColor: "#9B1C1C",
@@ -172,8 +318,10 @@ const styles = StyleSheet.create({
   },
   deleteText: { color: "#9B1C1C", fontWeight: "700" },
   description: { color: "#173F35", fontWeight: "700" },
+  disabled: { opacity: 0.5 },
   edit: { flex: 1, gap: 8 },
   error: { color: "#9B1C1C" },
+  filters: { gap: 8 },
   input: {
     borderColor: "#9AA8A3",
     borderRadius: 8,
@@ -181,12 +329,11 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: 12,
   },
+  movement: { flex: 1, gap: 3 },
   row: {
-    alignItems: "center",
     borderBottomColor: "#DDE5E1",
     borderBottomWidth: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    gap: 8,
     paddingVertical: 12,
   },
   saveButton: {
@@ -199,6 +346,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   saveText: { color: "#176B55", fontWeight: "700" },
-  screen: { flex: 1, gap: 12, padding: 24 },
+  screen: { gap: 12, padding: 24 },
   title: { color: "#173F35", fontSize: 24, fontWeight: "700" },
 });
