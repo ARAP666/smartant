@@ -227,6 +227,14 @@ export type PendingMovementHandlers = {
     pendingMovement: PendingMovementDto;
     evaluation: EvaluationDto;
   }>;
+  reviewPendingMovement: (
+    userId: string,
+    pendingMovementId: string,
+    input: PendingMovementInput,
+  ) => Promise<{
+    pendingMovement: PendingMovementDto;
+    evaluation: EvaluationDto;
+  }>;
   confirmPendingMovement: (
     userId: string,
     pendingMovementId: string,
@@ -368,6 +376,9 @@ const unavailableSavingsGoals: SavingsGoalHandlers = {
 
 const unavailablePendingMovements: PendingMovementHandlers = {
   evaluatePendingMovement: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Pending movements unavailable");
+  },
+  reviewPendingMovement: async () => {
     throw new AppError(500, "NOT_CONFIGURED", "Pending movements unavailable");
   },
   confirmPendingMovement: async () => {
@@ -780,6 +791,30 @@ export function createApp(
       sendError(response, error);
     }
   });
+
+  app.patch(
+    "/api/v1/pending-movements/:id/review",
+    async (request, response) => {
+      const parsed = pendingMovementSchema.safeParse(request.body);
+      if (!parsed.success) {
+        sendError(response, validationError(parsed.error));
+        return;
+      }
+
+      try {
+        const user = await authenticateRequest(request, handlers);
+        response.json({
+          data: await pendingMovementHandlers.reviewPendingMovement(
+            user.id,
+            request.params.id,
+            parsed.data,
+          ),
+        });
+      } catch (error) {
+        sendError(response, error);
+      }
+    },
+  );
 
   app.post(
     "/api/v1/pending-movements/:id/confirm",

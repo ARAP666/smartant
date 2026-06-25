@@ -21,6 +21,7 @@ import {
   deleteExpense,
   detectReceipt,
   evaluatePendingMovement,
+  reviewPendingMovement,
   updateExpense,
 } from "@/shared/api/client";
 import { getSessionToken } from "@/shared/auth/session";
@@ -37,6 +38,7 @@ export default function AddScreen() {
   const [expenseDescription, setExpenseDescription] = useState("");
   const [expenseCategory, setExpenseCategory] = useState("");
   const [receiptPhoto, setReceiptPhoto] = useState<ReceiptPhoto | null>(null);
+  const [receiptPendingMovementId, setReceiptPendingMovementId] = useState("");
   const [formError, setFormError] = useState("");
   const save = useMutation({
     mutationFn: async () => {
@@ -72,7 +74,9 @@ export default function AddScreen() {
       const token = await getSessionToken();
       if (!token) throw new Error("Sesion requerida");
       setFormError("");
-      return evaluatePendingMovement(token, parsed.data);
+      return receiptPendingMovementId
+        ? reviewPendingMovement(token, receiptPendingMovementId, parsed.data)
+        : evaluatePendingMovement(token, parsed.data);
     },
   });
   const confirm = useMutation({
@@ -189,8 +193,14 @@ export default function AddScreen() {
       setExpenseDate(data.detected.date);
       setExpenseDescription(data.detected.description);
       setExpenseCategory(data.detected.category);
+      setReceiptPendingMovementId(data.pendingMovement.id);
     },
   });
+  function cancelReceiptReview() {
+    setReceiptPhoto(null);
+    setReceiptPendingMovementId("");
+    setFormError("");
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
@@ -258,6 +268,15 @@ export default function AddScreen() {
           <Text style={styles.buttonText}>
             {detect.isPending ? "Detectando..." : "Detectar recibo"}
           </Text>
+        </Pressable>
+      ) : null}
+      {receiptPendingMovementId ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={cancelReceiptReview}
+          style={styles.secondaryButton}
+        >
+          <Text style={styles.secondaryText}>Cancelar recibo</Text>
         </Pressable>
       ) : null}
       <TextInput

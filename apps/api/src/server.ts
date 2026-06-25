@@ -21,6 +21,7 @@ import {
   confirmPendingMovement,
   deleteExpense,
   evaluatePendingMovement,
+  reviewPendingMovement,
   updateExpense,
 } from "./features/pending-movements/pending-movements.js";
 import { getProfile, updateProfile } from "./features/profile/profile.js";
@@ -93,6 +94,8 @@ const app = createApp(
   {
     evaluatePendingMovement: (userId, input) =>
       evaluatePendingMovement(database, userId, input),
+    reviewPendingMovement: (userId, pendingMovementId, input) =>
+      reviewPendingMovement(database, userId, pendingMovementId, input),
     confirmPendingMovement: (userId, pendingMovementId, input) =>
       confirmPendingMovement(database, userId, pendingMovementId, input),
     updateExpense: (userId, expenseId, input) =>

@@ -51,7 +51,7 @@ development_status:
   epic-5: backlog
   5-1-tomar-o-seleccionar-una-fotografia: review
   5-2-detectar-datos-del-recibo: review
-  5-3-revisar-y-confirmar-recibo: backlog
+  5-3-revisar-y-confirmar-recibo: review
   epic-5-retrospective: optional
 
   epic-6: backlog

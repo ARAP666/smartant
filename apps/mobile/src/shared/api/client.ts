@@ -152,6 +152,24 @@ export async function evaluatePendingMovement(
   );
 }
 
+export async function reviewPendingMovement(
+  token: string,
+  pendingMovementId: string,
+  input: PendingMovementInput,
+) {
+  return request<PendingMovementEvaluation>(
+    `/api/v1/pending-movements/${pendingMovementId}/review`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    },
+  );
+}
+
 export async function confirmPendingMovement(
   token: string,
   pendingMovementId: string,

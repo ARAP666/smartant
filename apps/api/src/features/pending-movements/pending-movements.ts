@@ -97,6 +97,61 @@ export async function evaluatePendingMovement(
   };
 }
 
+export async function reviewPendingMovement(
+  database: PrismaClient,
+  userId: string,
+  pendingMovementId: string,
+  input: PendingMovementInput,
+) {
+  const updated = await database.pendingMovement.updateMany({
+    where: { id: pendingMovementId, userId, status: "PENDING" },
+    data: input,
+  });
+  if (updated.count === 0) throw notFound();
+  const pendingMovement = await database.pendingMovement.findFirstOrThrow({
+    where: { id: pendingMovementId, userId },
+    select: pendingFields,
+  });
+  const [incomes, expenses, budgets, savingsGoals] = await Promise.all([
+    database.income.findMany({
+      where: { userId },
+      select: { amountMinor: true },
+    }),
+    database.expense.findMany({
+      where: { userId },
+      select: { amountMinor: true, category: true },
+    }),
+    database.budget.findMany({
+      where: { userId, active: true },
+      select: { id: true, amountMinor: true, category: true },
+    }),
+    database.savingsGoal.findMany({
+      where: { userId, active: true },
+      select: { id: true, amountMinor: true },
+    }),
+  ]);
+  const evaluation = calculateSpendableBalance({
+    incomes,
+    expenses: [
+      ...expenses,
+      { amountMinor: input.amountMinor, category: input.category },
+    ],
+    budgets,
+    savingsGoals,
+    category: input.category,
+  });
+  const alerts = createFinancialAlerts({
+    spendableBalance: evaluation.spendableBalance,
+    expenseAmountMinor: input.amountMinor,
+    margins: evaluation.margins,
+  });
+
+  return {
+    pendingMovement: toPendingDto(pendingMovement),
+    evaluation: toEvaluationDto(evaluation, alerts),
+  };
+}
+
 export async function confirmPendingMovement(
   database: PrismaClient,
   userId: string,

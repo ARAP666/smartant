@@ -81,6 +81,21 @@ describe("pending movement routes", () => {
     expect(response.body.data).toEqual({ expense, created: true });
   });
 
+  it("reviews a pending movement without creating a second one", async () => {
+    const response = await request(app())
+      .patch("/api/v1/pending-movements/pending-id/review")
+      .set("Authorization", "Bearer valid")
+      .send({
+        amountMinor: "12000",
+        date: "2026-06-25",
+        description: "Cena",
+        category: "Comida",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual({ pendingMovement, evaluation });
+  });
+
   it("returns an existing expense for an idempotent retry", async () => {
     const response = await request(
       app(
@@ -175,6 +190,7 @@ function app(
     {},
     {
       evaluatePendingMovement: async () => ({ pendingMovement, evaluation }),
+      reviewPendingMovement: async () => ({ pendingMovement, evaluation }),
       confirmPendingMovement: async () => ({ expense, created: true }),
       updateExpense: async () => ({
         expense: {
