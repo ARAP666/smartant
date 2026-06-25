@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import {
@@ -9,6 +10,10 @@ import {
   TextInput,
   View,
 } from "react-native";
+import {
+  type ImportFile,
+  validateImportFile,
+} from "@/features/imports/import-file";
 import { incomeSchema } from "@/features/incomes/income-schema";
 import { pendingMovementSchema } from "@/features/pending-movements/pending-movement-schema";
 import {
@@ -37,6 +42,7 @@ export default function AddScreen() {
   );
   const [expenseDescription, setExpenseDescription] = useState("");
   const [expenseCategory, setExpenseCategory] = useState("");
+  const [importFile, setImportFile] = useState<ImportFile | null>(null);
   const [receiptPhoto, setReceiptPhoto] = useState<ReceiptPhoto | null>(null);
   const [receiptPendingMovementId, setReceiptPendingMovementId] = useState("");
   const [formError, setFormError] = useState("");
@@ -201,6 +207,30 @@ export default function AddScreen() {
     setReceiptPendingMovementId("");
     setFormError("");
   }
+  async function selectImportFile() {
+    const token = await getSessionToken();
+    if (!token) {
+      setFormError("Sesion requerida");
+      return;
+    }
+    const result = await DocumentPicker.getDocumentAsync({
+      copyToCacheDirectory: true,
+      type: [
+        "text/csv",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ],
+    });
+    if (result.canceled) return;
+    const file = result.assets[0];
+    if (!file) return;
+    const validationError = validateImportFile(file);
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+    setImportFile(file);
+    setFormError("");
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
@@ -241,6 +271,16 @@ export default function AddScreen() {
         </Text>
       </Pressable>
       <Text style={styles.title}>Evaluar gasto</Text>
+      <View style={styles.actions}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={selectImportFile}
+          style={styles.secondaryButton}
+        >
+          <Text style={styles.secondaryText}>Importar CSV/XLSX</Text>
+        </Pressable>
+      </View>
+      {importFile ? <Text>Archivo listo: {importFile.name}</Text> : null}
       <View style={styles.actions}>
         <Pressable
           accessibilityRole="button"
