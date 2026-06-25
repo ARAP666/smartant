@@ -1,32 +1,51 @@
-# Pulse Project Boilerplate
+# Smart Ant
 
-Reusable documentation and agent setup for new production-bound projects in the Pulse workspace.
+App movil + API para registrar ingresos, gastos, presupuestos, metas de ahorro, recibos e importaciones CSV.
 
-Designed for:
+## Stack
 
-- React, Next.js and React Native.
-- TypeScript.
-- Tailwind or NativeWind.
-- Express or NestJS.
-- PostgreSQL.
-- BMAD.
-- CodeGraph.
-- Codex/Caveman working modes.
-- Ponytail integration hook.
+- API: Express, Prisma, PostgreSQL.
+- Mobile: Expo React Native.
+- Shared finance logic: `packages/finance`.
 
-## How To Use
+## Setup Local
 
-1. Copy these files into a new project root.
-2. Replace product placeholders in `SPEC.template.md`.
-3. Configure the canonical Ponytail installer and run the complete bootstrap:
+```bash
+npm install
+npm run start
+```
 
-   ```powershell
-   $env:PONYTAIL_INSTALL_COMMAND = '<canonical Ponytail install command>'
-   .\scripts\bootstrap-agents.ps1
-   ```
+`npm run start` levanta la API. En local usa por defecto:
 
-4. Keep `docs/` as the source of truth and update it with every behavior,
-   architecture or QA change.
+```bash
+postgresql://postgres:postgres@localhost:5432/sentDB
+```
 
-Bootstrap stops if Ponytail source is missing. This prevents installing an
-unrelated package named `ponytail`.
+En produccion `DATABASE_URL` es obligatorio.
+
+## Cuenta Demo
+
+Ver [docs/demo-account.md](docs/demo-account.md).
+
+```bash
+npm run seed:demo --workspace @smart-ant/api
+```
+
+## Checks
+
+```bash
+npm run lint
+npm run type-check
+npm test
+npm run build
+```
+
+## Estado
+
+- Historias: 27/27 en review.
+- Handoff: [docs/handoff.md](docs/handoff.md).
+- Gate local: [docs/production-gate.md](docs/production-gate.md).
+
+## Produccion
+
+Railway/EAS/APK estan preparados pero diferidos hasta tener credenciales y valores finales. Antes de APK/EAS, cambiar recibos a storage durable y guardar la ruta en base de datos.
