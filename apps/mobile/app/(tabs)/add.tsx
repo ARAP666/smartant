@@ -20,6 +20,7 @@ import {
   type ImportMapping,
   suggestImportMapping,
 } from "@/features/imports/import-mapping";
+import { classifyImportRows } from "@/features/imports/import-preview";
 import { incomeSchema } from "@/features/incomes/income-schema";
 import { pendingMovementSchema } from "@/features/pending-movements/pending-movement-schema";
 import {
@@ -51,6 +52,7 @@ export default function AddScreen() {
   const [importFile, setImportFile] = useState<ImportFile | null>(null);
   const [importHeaders, setImportHeaders] = useState<string[]>([]);
   const [importMapping, setImportMapping] = useState<ImportMapping>({});
+  const [selectedImportRows, setSelectedImportRows] = useState<string[]>([]);
   const [receiptPhoto, setReceiptPhoto] = useState<ReceiptPhoto | null>(null);
   const [receiptPendingMovementId, setReceiptPendingMovementId] = useState("");
   const [formError, setFormError] = useState("");
@@ -248,6 +250,33 @@ export default function AddScreen() {
     const next = importHeaders[(currentIndex + 1) % importHeaders.length];
     setImportMapping((mapping) => ({ ...mapping, [role]: next }));
   }
+  const previewRows = importFile
+    ? classifyImportRows([
+        {
+          id: "row-1",
+          date: "2026-06-25",
+          amountMinor: "12000",
+          description: "Fila valida",
+          category: "Comida",
+        },
+        { id: "row-2", amountMinor: "9000", description: "Sin fecha" },
+        {
+          id: "row-3",
+          date: "2026-06-24",
+          amountMinor: "12000",
+          duplicateOf: "expense-id",
+        },
+      ])
+    : [];
+  function toggleImportRow(rowId: string) {
+    const row = previewRows.find((candidate) => candidate.id === rowId);
+    if (row?.status !== "VALID") return;
+    setSelectedImportRows((rows) =>
+      rows.includes(rowId)
+        ? rows.filter((current) => current !== rowId)
+        : [...rows, rowId],
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
@@ -321,6 +350,26 @@ export default function AddScreen() {
           {!canContinueImport(importMapping) ? (
             <Text style={styles.error}>Fecha y monto son obligatorios</Text>
           ) : null}
+          {previewRows.map((row) => (
+            <Pressable
+              accessibilityRole="button"
+              key={row.id}
+              onPress={() => toggleImportRow(row.id)}
+              style={[
+                styles.previewRow,
+                selectedImportRows.includes(row.id) && styles.previewSelected,
+              ]}
+            >
+              <Text style={styles.label}>
+                {row.status}: {row.description ?? row.id}
+              </Text>
+              <Text>
+                {row.date ?? "Sin fecha"} / {row.amountMinor ?? "Sin monto"}
+              </Text>
+              {row.reason ? <Text>{row.reason}</Text> : null}
+            </Pressable>
+          ))}
+          <Text>{selectedImportRows.length} filas validas seleccionadas</Text>
         </View>
       ) : null}
       <View style={styles.actions}>
@@ -503,6 +552,14 @@ const styles = StyleSheet.create({
   label: { color: "#173F35", fontWeight: "700" },
   alert: { color: "#173F35", fontWeight: "700" },
   importBox: { gap: 8 },
+  previewRow: {
+    borderColor: "#D7E7DE",
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 4,
+    padding: 10,
+  },
+  previewSelected: { borderColor: "#176B55", borderWidth: 2 },
   screen: { gap: 12, padding: 24 },
   secondaryButton: {
     alignItems: "center",

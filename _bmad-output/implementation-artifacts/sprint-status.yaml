@@ -57,7 +57,7 @@ development_status:
   epic-6: backlog
   6-1-seleccionar-y-leer-archivo: review
   6-2-asignar-columnas: review
-  6-3-revisar-resultados: backlog
+  6-3-revisar-resultados: review
   6-4-confirmar-importacion: backlog
   epic-6-retrospective: optional
 
