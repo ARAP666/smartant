@@ -10,16 +10,21 @@ import {
 } from "react-native";
 import { budgetSchema } from "@/features/budgets/budget-schema";
 import { salarySchema } from "@/features/salary/salary-schema";
+import { savingsGoalSchema } from "@/features/savings-goals/savings-goal-schema";
 import {
   createBudget,
+  createSavingsGoal,
   deleteBudget,
   deleteSalary,
+  deleteSavingsGoal,
   fetchBudgets,
   fetchSalary,
+  fetchSavingsGoals,
   generateSalary,
   pauseSalary,
   saveSalary,
   updateBudget,
+  updateSavingsGoal,
 } from "@/shared/api/client";
 import { getSessionToken } from "@/shared/auth/session";
 
@@ -35,6 +40,8 @@ export default function PlanScreen() {
     "MONTHLY",
   );
   const [budgetCategory, setBudgetCategory] = useState("");
+  const [goalAmount, setGoalAmount] = useState("");
+  const [goalPeriod, setGoalPeriod] = useState<"WEEKLY" | "MONTHLY">("MONTHLY");
   const [formError, setFormError] = useState("");
   const salary = useQuery({
     queryKey: ["salary"],
@@ -50,6 +57,14 @@ export default function PlanScreen() {
       const token = await getSessionToken();
       if (!token) throw new Error("Sesion requerida");
       return fetchBudgets(token);
+    },
+  });
+  const savingsGoals = useQuery({
+    queryKey: ["savingsGoals"],
+    queryFn: async () => {
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      return fetchSavingsGoals(token);
     },
   });
   const save = useMutation({
@@ -149,6 +164,55 @@ export default function PlanScreen() {
       await deleteBudget(token, id);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["budgets"] }),
+  });
+  const saveGoal = useMutation({
+    mutationFn: async () => {
+      const parsed = savingsGoalSchema.safeParse({
+        amountMinor: goalAmount,
+        period: goalPeriod,
+        active: true,
+      });
+      if (!parsed.success) {
+        setFormError("Revisa monto y periodo de meta");
+        return null;
+      }
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      setFormError("");
+      return createSavingsGoal(token, parsed.data);
+    },
+    onSuccess: (data) => {
+      if (!data) return;
+      queryClient.invalidateQueries({ queryKey: ["savingsGoals"] });
+      setGoalAmount("");
+    },
+  });
+  const toggleGoal = useMutation({
+    mutationFn: async (goal: {
+      id: string;
+      amountMinor: string;
+      period: "WEEKLY" | "MONTHLY";
+      active: boolean;
+    }) => {
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      return updateSavingsGoal(token, goal.id, {
+        amountMinor: goal.amountMinor,
+        period: goal.period,
+        active: !goal.active,
+      });
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["savingsGoals"] }),
+  });
+  const removeGoal = useMutation({
+    mutationFn: async (id: string) => {
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      await deleteSavingsGoal(token, id);
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["savingsGoals"] }),
   });
 
   useEffect(() => {
@@ -330,6 +394,79 @@ export default function PlanScreen() {
       ) : null}
       {saveBudget.isError ? (
         <Text style={styles.error}>{saveBudget.error.message}</Text>
+      ) : null}
+      <Text style={styles.label}>Meta de ahorro</Text>
+      <TextInput
+        accessibilityLabel="Monto meta"
+        keyboardType="number-pad"
+        onChangeText={setGoalAmount}
+        style={styles.input}
+        value={goalAmount}
+      />
+      <View style={styles.actions}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setGoalPeriod("WEEKLY")}
+          style={[
+            styles.segment,
+            goalPeriod === "WEEKLY" && styles.segmentSelected,
+          ]}
+        >
+          <Text>Semanal</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setGoalPeriod("MONTHLY")}
+          style={[
+            styles.segment,
+            goalPeriod === "MONTHLY" && styles.segmentSelected,
+          ]}
+        >
+          <Text>Mensual</Text>
+        </Pressable>
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        disabled={saveGoal.isPending}
+        onPress={() => saveGoal.mutate()}
+        style={styles.button}
+      >
+        <Text style={styles.buttonText}>Guardar meta</Text>
+      </Pressable>
+      {savingsGoals.isPending ? <Text>Cargando metas...</Text> : null}
+      {savingsGoals.data?.savingsGoals.map((goal) => (
+        <View key={goal.id} style={styles.budgetRow}>
+          <Text>
+            {goal.period} - {goal.amountMinor}
+          </Text>
+          <View style={styles.actions}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() =>
+                toggleGoal.mutate({
+                  ...goal,
+                  period: goal.period as "WEEKLY" | "MONTHLY",
+                })
+              }
+              style={styles.secondaryButton}
+            >
+              <Text>{goal.active ? "Desactivar" : "Activar"}</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => removeGoal.mutate(goal.id)}
+              style={styles.deleteButton}
+            >
+              <Text style={styles.deleteText}>Eliminar</Text>
+            </Pressable>
+          </View>
+        </View>
+      ))}
+      {savingsGoals.isError ? (
+        <Text style={styles.error}>{savingsGoals.error.message}</Text>
+      ) : null}
+      {saveGoal.isError ? (
+        <Text style={styles.error}>{saveGoal.error.message}</Text>
       ) : null}
     </ScrollView>
   );

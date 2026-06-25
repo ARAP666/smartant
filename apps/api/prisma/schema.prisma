@@ -16,11 +16,26 @@ model User {
   budgets      Budget[]
   incomes      Income[]
   salary       Salary?
+  savingsGoals SavingsGoal[]
   sessions     Session[]
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
   @@map("users")
+}
+
+model SavingsGoal {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid @map("user_id")
+  amountMinor BigInt   @map("amount_minor")
+  period      String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, period, active])
+  @@map("savings_goals")
 }
 
 model Budget {

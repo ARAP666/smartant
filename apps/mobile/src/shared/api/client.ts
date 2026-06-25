@@ -4,6 +4,10 @@ import type { Budget, BudgetInput } from "@/features/budgets/budget-schema";
 import type { Income, IncomeInput } from "@/features/incomes/income-schema";
 import type { ProfileInput } from "@/features/profile/profile-schema";
 import type { Salary, SalaryInput } from "@/features/salary/salary-schema";
+import type {
+  SavingsGoal,
+  SavingsGoalInput,
+} from "@/features/savings-goals/savings-goal-schema";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -183,6 +187,48 @@ export async function updateBudget(
 
 export async function deleteBudget(token: string, id: string) {
   await request<void>(`/api/v1/budgets/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function fetchSavingsGoals(token: string) {
+  return request<{ savingsGoals: SavingsGoal[] }>("/api/v1/savings-goals", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function createSavingsGoal(
+  token: string,
+  input: SavingsGoalInput,
+) {
+  return request<{ savingsGoal: SavingsGoal }>("/api/v1/savings-goals", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateSavingsGoal(
+  token: string,
+  id: string,
+  input: SavingsGoalInput,
+) {
+  return request<{ savingsGoal: SavingsGoal }>(`/api/v1/savings-goals/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+}
+
+export async function deleteSavingsGoal(token: string, id: string) {
+  await request<void>(`/api/v1/savings-goals/${id}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });

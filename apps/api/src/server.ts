@@ -24,6 +24,12 @@ import {
   pauseSalary,
   upsertSalary,
 } from "./features/salary/salary.js";
+import {
+  createSavingsGoal,
+  deleteSavingsGoal,
+  listSavingsGoals,
+  updateSavingsGoal,
+} from "./features/savings-goals/savings-goals.js";
 import { createDatabase } from "./shared/db.js";
 
 const config = parseConfig(process.env);
@@ -63,6 +69,14 @@ const app = createApp(
     updateBudget: (userId, id, input) =>
       updateBudget(database, userId, id, input),
     deleteBudget: (userId, id) => deleteBudget(database, userId, id),
+  },
+  {
+    listSavingsGoals: (userId) => listSavingsGoals(database, userId),
+    createSavingsGoal: (userId, input) =>
+      createSavingsGoal(database, userId, input),
+    updateSavingsGoal: (userId, id, input) =>
+      updateSavingsGoal(database, userId, id, input),
+    deleteSavingsGoal: (userId, id) => deleteSavingsGoal(database, userId, id),
   },
 );
 

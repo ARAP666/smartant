@@ -19,6 +19,10 @@ import {
   salaryGenerationSchema,
   salarySchema,
 } from "./features/salary/salary.js";
+import {
+  type SavingsGoalInput,
+  savingsGoalSchema,
+} from "./features/savings-goals/savings-goals.js";
 import { AppError } from "./shared/errors.js";
 
 type RegistrationResult = {
@@ -62,6 +66,13 @@ type BudgetDto = {
   active: boolean;
 };
 
+type SavingsGoalDto = {
+  id: string;
+  amountMinor: string;
+  period: string;
+  active: boolean;
+};
+
 type SalaryDto = {
   id: string;
   amountMinor: string;
@@ -97,6 +108,22 @@ export type BudgetHandlers = {
     input: BudgetInput,
   ) => Promise<{ budget: BudgetDto }>;
   deleteBudget: (userId: string, id: string) => Promise<void>;
+};
+
+export type SavingsGoalHandlers = {
+  listSavingsGoals: (
+    userId: string,
+  ) => Promise<{ savingsGoals: SavingsGoalDto[] }>;
+  createSavingsGoal: (
+    userId: string,
+    input: SavingsGoalInput,
+  ) => Promise<{ savingsGoal: SavingsGoalDto }>;
+  updateSavingsGoal: (
+    userId: string,
+    id: string,
+    input: SavingsGoalInput,
+  ) => Promise<{ savingsGoal: SavingsGoalDto }>;
+  deleteSavingsGoal: (userId: string, id: string) => Promise<void>;
 };
 
 export type SalaryHandlers = {
@@ -168,6 +195,21 @@ const unavailableBudgets: BudgetHandlers = {
   },
 };
 
+const unavailableSavingsGoals: SavingsGoalHandlers = {
+  listSavingsGoals: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Savings goals unavailable");
+  },
+  createSavingsGoal: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Savings goals unavailable");
+  },
+  updateSavingsGoal: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Savings goals unavailable");
+  },
+  deleteSavingsGoal: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Savings goals unavailable");
+  },
+};
+
 const unavailableSalary: SalaryHandlers = {
   getSalary: async () => {
     throw new AppError(500, "NOT_CONFIGURED", "Salary unavailable");
@@ -193,6 +235,7 @@ export function createApp(
   incomes: Partial<IncomeHandlers> = {},
   salary: Partial<SalaryHandlers> = {},
   budgets: Partial<BudgetHandlers> = {},
+  savingsGoals: Partial<SavingsGoalHandlers> = {},
 ) {
   const handlers =
     typeof auth === "function"
@@ -202,6 +245,10 @@ export function createApp(
   const incomeHandlers = { ...unavailableIncomes, ...incomes };
   const salaryHandlers = { ...unavailableSalary, ...salary };
   const budgetHandlers = { ...unavailableBudgets, ...budgets };
+  const savingsGoalHandlers = {
+    ...unavailableSavingsGoals,
+    ...savingsGoals,
+  };
   const app = express();
   app.use(express.json());
 
@@ -442,6 +489,65 @@ export function createApp(
     try {
       const user = await authenticateRequest(request, handlers);
       await budgetHandlers.deleteBudget(user.id, request.params.id);
+      response.status(204).send();
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.get("/api/v1/savings-goals", async (request, response) => {
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({
+        data: await savingsGoalHandlers.listSavingsGoals(user.id),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.post("/api/v1/savings-goals", async (request, response) => {
+    const parsed = savingsGoalSchema.safeParse(request.body);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.status(201).json({
+        data: await savingsGoalHandlers.createSavingsGoal(user.id, parsed.data),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.patch("/api/v1/savings-goals/:id", async (request, response) => {
+    const parsed = savingsGoalSchema.safeParse(request.body);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({
+        data: await savingsGoalHandlers.updateSavingsGoal(
+          user.id,
+          request.params.id,
+          parsed.data,
+        ),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.delete("/api/v1/savings-goals/:id", async (request, response) => {
+    try {
+      const user = await authenticateRequest(request, handlers);
+      await savingsGoalHandlers.deleteSavingsGoal(user.id, request.params.id);
       response.status(204).send();
     } catch (error) {
       sendError(response, error);
