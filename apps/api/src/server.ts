@@ -36,6 +36,7 @@ import {
   listSavingsGoals,
   updateSavingsGoal,
 } from "./features/savings-goals/savings-goals.js";
+import { getFinancialSummary } from "./features/summary/summary.js";
 import { createDatabase } from "./shared/db.js";
 
 const config = parseConfig(process.env);
@@ -93,6 +94,9 @@ const app = createApp(
       updateExpense(database, userId, expenseId, input),
     deleteExpense: (userId, expenseId) =>
       deleteExpense(database, userId, expenseId),
+  },
+  {
+    getFinancialSummary: (userId) => getFinancialSummary(database, userId),
   },
 );
 

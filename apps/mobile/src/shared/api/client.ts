@@ -13,6 +13,7 @@ import type {
   SavingsGoal,
   SavingsGoalInput,
 } from "@/features/savings-goals/savings-goal-schema";
+import type { FinancialSummary } from "@/features/summary/summary-schema";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -167,6 +168,12 @@ export async function updateExpense(
 export async function deleteExpense(token: string, expenseId: string) {
   await request<void>(`/api/v1/expenses/${expenseId}`, {
     method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function fetchFinancialSummary(token: string) {
+  return request<{ summary: FinancialSummary }>("/api/v1/summary", {
     headers: { Authorization: `Bearer ${token}` },
   });
 }

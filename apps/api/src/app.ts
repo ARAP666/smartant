@@ -125,6 +125,16 @@ type SalaryDto = {
   paused: boolean;
 };
 
+type FinancialSummaryDto = {
+  period: { kind: string; start: string; end: string };
+  incomeTotal: string;
+  expenseTotal: string;
+  savingsGoalTotal: string;
+  budgetTotal: string;
+  spendableBalance: string;
+  empty: boolean;
+};
+
 export type IncomeHandlers = {
   listIncomes: (userId: string) => Promise<{ incomes: IncomeDto[] }>;
   createIncome: (
@@ -211,6 +221,12 @@ export type SalaryHandlers = {
     userId: string,
     input: SalaryGenerationInput,
   ) => Promise<{ income: IncomeDto; generated: boolean }>;
+};
+
+export type SummaryHandlers = {
+  getFinancialSummary: (
+    userId: string,
+  ) => Promise<{ summary: FinancialSummaryDto }>;
 };
 
 const unavailable: AuthHandlers = {
@@ -313,6 +329,12 @@ const unavailableSalary: SalaryHandlers = {
   },
 };
 
+const unavailableSummary: SummaryHandlers = {
+  getFinancialSummary: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Summary unavailable");
+  },
+};
+
 export function createApp(
   checkDatabase: () => Promise<void>,
   auth: Partial<AuthHandlers> | AuthHandlers["register"] = {},
@@ -322,6 +344,7 @@ export function createApp(
   budgets: Partial<BudgetHandlers> = {},
   savingsGoals: Partial<SavingsGoalHandlers> = {},
   pendingMovements: Partial<PendingMovementHandlers> = {},
+  summary: Partial<SummaryHandlers> = {},
 ) {
   const handlers =
     typeof auth === "function"
@@ -339,6 +362,7 @@ export function createApp(
     ...unavailablePendingMovements,
     ...pendingMovements,
   };
+  const summaryHandlers = { ...unavailableSummary, ...summary };
   const app = express();
   app.use(express.json());
 
@@ -713,6 +737,17 @@ export function createApp(
       const user = await authenticateRequest(request, handlers);
       await pendingMovementHandlers.deleteExpense(user.id, request.params.id);
       response.status(204).send();
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.get("/api/v1/summary", async (request, response) => {
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({
+        data: await summaryHandlers.getFinancialSummary(user.id),
+      });
     } catch (error) {
       sendError(response, error);
     }
