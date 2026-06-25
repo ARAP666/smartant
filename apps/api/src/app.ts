@@ -13,6 +13,10 @@ import {
   type HistoryQuery,
   historyQuerySchema,
 } from "./features/history/history.js";
+import {
+  type ImportConfirmationInput,
+  importConfirmationSchema,
+} from "./features/imports/imports.js";
 import { type IncomeInput, incomeSchema } from "./features/incomes/incomes.js";
 import {
   type ExpenseUpdateInput,
@@ -175,6 +179,19 @@ type ReceiptDetectionDto = {
   };
 };
 
+type ImportConfirmationDto = {
+  created: number;
+  skipped: number;
+  failed: number;
+  rows: Array<{
+    rowId: string;
+    status: "CREATED" | "SKIPPED";
+    expenseId?: string;
+    alertSeverity?: string;
+    reason?: string;
+  }>;
+};
+
 export type IncomeHandlers = {
   listIncomes: (userId: string) => Promise<{ incomes: IncomeDto[] }>;
   createIncome: (
@@ -307,6 +324,13 @@ export type ReceiptHandlers = {
   ) => Promise<ReceiptDetectionDto>;
 };
 
+export type ImportHandlers = {
+  confirmImport: (
+    userId: string,
+    input: ImportConfirmationInput,
+  ) => Promise<ImportConfirmationDto>;
+};
+
 const unavailable: AuthHandlers = {
   register: async () => {
     throw new AppError(500, "NOT_CONFIGURED", "Registration unavailable");
@@ -431,6 +455,12 @@ const unavailableReceipts: ReceiptHandlers = {
   },
 };
 
+const unavailableImports: ImportHandlers = {
+  confirmImport: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Imports unavailable");
+  },
+};
+
 export function createApp(
   checkDatabase: () => Promise<void>,
   auth: Partial<AuthHandlers> | AuthHandlers["register"] = {},
@@ -443,6 +473,7 @@ export function createApp(
   summary: Partial<SummaryHandlers> = {},
   history: Partial<HistoryHandlers> = {},
   receipts: Partial<ReceiptHandlers> = {},
+  imports: Partial<ImportHandlers> = {},
 ) {
   const handlers =
     typeof auth === "function"
@@ -463,6 +494,7 @@ export function createApp(
   const summaryHandlers = { ...unavailableSummary, ...summary };
   const historyHandlers = { ...unavailableHistory, ...history };
   const receiptHandlers = { ...unavailableReceipts, ...receipts };
+  const importHandlers = { ...unavailableImports, ...imports };
   const app = express();
   const upload = multer({
     storage: multer.memoryStorage(),
@@ -958,6 +990,23 @@ export function createApp(
       }
     },
   );
+
+  app.post("/api/v1/imports/confirm", async (request, response) => {
+    const parsed = importConfirmationSchema.safeParse(request.body);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.status(201).json({
+        data: await importHandlers.confirmImport(user.id, parsed.data),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
 
   app.get("/api/v1/salary", async (request, response) => {
     try {

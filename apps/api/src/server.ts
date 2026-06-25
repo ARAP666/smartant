@@ -11,6 +11,7 @@ import {
   updateBudget,
 } from "./features/budgets/budgets.js";
 import { listMovementHistory } from "./features/history/history.js";
+import { confirmImport } from "./features/imports/imports.js";
 import {
   createIncome,
   deleteIncome,
@@ -116,6 +117,9 @@ const app = createApp(
   {
     detectReceiptPendingMovement: (userId, input) =>
       detectReceiptPendingMovement(database, userId, input),
+  },
+  {
+    confirmImport: (userId, input) => confirmImport(database, userId, input),
   },
 );
 

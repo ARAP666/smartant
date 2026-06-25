@@ -28,6 +28,7 @@ import {
   validateReceiptPhoto,
 } from "@/features/receipts/receipt-photo";
 import {
+  confirmImport,
   confirmPendingMovement,
   createIncome,
   deleteExpense,
@@ -277,6 +278,36 @@ export default function AddScreen() {
         : [...rows, rowId],
     );
   }
+  const selectedValidImportRows = previewRows.filter(
+    (row) => row.status === "VALID" && selectedImportRows.includes(row.id),
+  );
+  const confirmSelectedImport = useMutation({
+    mutationFn: async () => {
+      if (!importFile || selectedValidImportRows.length === 0) {
+        setFormError("Selecciona filas validas para importar");
+        return null;
+      }
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      setFormError("");
+      return confirmImport(token, {
+        idempotencyKey:
+          `import-${importFile.name}-${importFile.size ?? 0}`.slice(0, 120),
+        rows: selectedValidImportRows.map((row) => ({
+          rowId: row.id,
+          amountMinor: row.amountMinor ?? "0",
+          date: row.date ?? "",
+          description: row.description ?? row.id,
+          category: row.category ?? "Importado",
+        })),
+      });
+    },
+    onSuccess: (data) => {
+      if (!data) return;
+      queryClient.invalidateQueries();
+      setSelectedImportRows([]);
+    },
+  });
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
@@ -370,6 +401,33 @@ export default function AddScreen() {
             </Pressable>
           ))}
           <Text>{selectedImportRows.length} filas validas seleccionadas</Text>
+          <Pressable
+            accessibilityRole="button"
+            disabled={
+              confirmSelectedImport.isPending ||
+              !canContinueImport(importMapping) ||
+              selectedValidImportRows.length === 0
+            }
+            onPress={() => confirmSelectedImport.mutate()}
+            style={[
+              styles.button,
+              (confirmSelectedImport.isPending ||
+                selectedValidImportRows.length === 0) &&
+                styles.disabled,
+            ]}
+          >
+            <Text style={styles.buttonText}>
+              {confirmSelectedImport.isPending
+                ? "Importando..."
+                : "Confirmar importacion"}
+            </Text>
+          </Pressable>
+          {confirmSelectedImport.data ? (
+            <Text>
+              Importadas: {confirmSelectedImport.data.created} / Omitidas:{" "}
+              {confirmSelectedImport.data.skipped}
+            </Text>
+          ) : null}
         </View>
       ) : null}
       <View style={styles.actions}>
@@ -505,6 +563,9 @@ export default function AddScreen() {
       {detect.isError ? (
         <Text style={styles.error}>{detect.error.message}</Text>
       ) : null}
+      {confirmSelectedImport.isError ? (
+        <Text style={styles.error}>{confirmSelectedImport.error.message}</Text>
+      ) : null}
       {editExpense.isError ? (
         <Text style={styles.error}>{editExpense.error.message}</Text>
       ) : null}
@@ -518,6 +579,9 @@ export default function AddScreen() {
       ) : null}
       {removeExpense.isSuccess && !formError ? (
         <Text>Gasto eliminado</Text>
+      ) : null}
+      {confirmSelectedImport.isSuccess && !formError ? (
+        <Text>Importacion confirmada</Text>
       ) : null}
     </ScrollView>
   );

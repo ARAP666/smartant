@@ -5,6 +5,10 @@ import type {
   MovementHistory,
   MovementHistoryQuery,
 } from "@/features/history/history-schema";
+import type {
+  ConfirmImportInput,
+  ConfirmImportResult,
+} from "@/features/imports/import-preview";
 import type { Income, IncomeInput } from "@/features/incomes/income-schema";
 import type {
   ConfirmedExpense,
@@ -226,6 +230,17 @@ export async function deleteExpense(token: string, expenseId: string) {
   await request<void>(`/api/v1/expenses/${expenseId}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function confirmImport(token: string, input: ConfirmImportInput) {
+  return request<ConfirmImportResult>("/api/v1/imports/confirm", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
   });
 }
 
