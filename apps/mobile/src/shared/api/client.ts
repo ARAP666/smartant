@@ -1,5 +1,6 @@
 import type { LoginInput } from "@/features/auth/login-schema";
 import type { RegisterInput } from "@/features/auth/register-schema";
+import type { Income, IncomeInput } from "@/features/incomes/income-schema";
 import type { ProfileInput } from "@/features/profile/profile-schema";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
@@ -56,6 +57,45 @@ export async function saveProfile(token: string, input: ProfileInput) {
       body: JSON.stringify(input),
     },
   );
+}
+
+export async function fetchIncomes(token: string) {
+  return request<{ incomes: Income[] }>("/api/v1/incomes", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function createIncome(token: string, input: IncomeInput) {
+  return request<{ income: Income }>("/api/v1/incomes", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateIncome(
+  token: string,
+  id: string,
+  input: IncomeInput,
+) {
+  return request<{ income: Income }>(`/api/v1/incomes/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+}
+
+export async function deleteIncome(token: string, id: string) {
+  await request<void>(`/api/v1/incomes/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
 }
 
 async function authenticate(path: string, input: RegisterInput | LoginInput) {

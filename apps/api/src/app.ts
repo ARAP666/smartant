@@ -6,6 +6,7 @@ import {
   registerSchema,
 } from "./features/auth/register.js";
 import { getBearerToken } from "./features/auth/session.js";
+import { type IncomeInput, incomeSchema } from "./features/incomes/incomes.js";
 import {
   type ProfileInput,
   profileSchema,
@@ -38,6 +39,27 @@ export type ProfileHandlers = {
   }>;
 };
 
+type IncomeDto = {
+  id: string;
+  amountMinor: string;
+  date: string;
+  description: string;
+};
+
+export type IncomeHandlers = {
+  listIncomes: (userId: string) => Promise<{ incomes: IncomeDto[] }>;
+  createIncome: (
+    userId: string,
+    input: IncomeInput,
+  ) => Promise<{ income: IncomeDto }>;
+  updateIncome: (
+    userId: string,
+    id: string,
+    input: IncomeInput,
+  ) => Promise<{ income: IncomeDto }>;
+  deleteIncome: (userId: string, id: string) => Promise<void>;
+};
+
 const unavailable: AuthHandlers = {
   register: async () => {
     throw new AppError(500, "NOT_CONFIGURED", "Registration unavailable");
@@ -60,16 +82,33 @@ const unavailableProfile: ProfileHandlers = {
   },
 };
 
+const unavailableIncomes: IncomeHandlers = {
+  listIncomes: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Incomes unavailable");
+  },
+  createIncome: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Incomes unavailable");
+  },
+  updateIncome: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Incomes unavailable");
+  },
+  deleteIncome: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Incomes unavailable");
+  },
+};
+
 export function createApp(
   checkDatabase: () => Promise<void>,
   auth: Partial<AuthHandlers> | AuthHandlers["register"] = {},
   profile: Partial<ProfileHandlers> = {},
+  incomes: Partial<IncomeHandlers> = {},
 ) {
   const handlers =
     typeof auth === "function"
       ? { ...unavailable, register: auth }
       : { ...unavailable, ...auth };
   const profileHandlers = { ...unavailableProfile, ...profile };
+  const incomeHandlers = { ...unavailableIncomes, ...incomes };
   const app = express();
   app.use(express.json());
 
@@ -202,6 +241,63 @@ export function createApp(
     }
   });
 
+  app.get("/api/v1/incomes", async (request, response) => {
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({ data: await incomeHandlers.listIncomes(user.id) });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.post("/api/v1/incomes", async (request, response) => {
+    const parsed = incomeSchema.safeParse(request.body);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.status(201).json({
+        data: await incomeHandlers.createIncome(user.id, parsed.data),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.patch("/api/v1/incomes/:id", async (request, response) => {
+    const parsed = incomeSchema.safeParse(request.body);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({
+        data: await incomeHandlers.updateIncome(
+          user.id,
+          request.params.id,
+          parsed.data,
+        ),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.delete("/api/v1/incomes/:id", async (request, response) => {
+    try {
+      const user = await authenticateRequest(request, handlers);
+      await incomeHandlers.deleteIncome(user.id, request.params.id);
+      response.status(204).send();
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
   return app;
 }
 
@@ -232,4 +328,10 @@ async function authenticateRequest(
   const user = token ? await handlers.authenticate(token) : null;
   if (!user) throw unauthorized();
   return user;
+}
+
+function validationError(error: { flatten: () => { fieldErrors: unknown } }) {
+  return new AppError(422, "VALIDATION_ERROR", "Invalid request data", {
+    fieldErrors: error.flatten().fieldErrors,
+  });
 }

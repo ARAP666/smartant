@@ -13,11 +13,26 @@ model User {
   passwordHash String    @map("password_hash")
   currency     String    @default("CRC")
   timeZone     String    @default("America/Costa_Rica") @map("time_zone")
+  incomes      Income[]
   sessions     Session[]
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
   @@map("users")
+}
+
+model Income {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid @map("user_id")
+  amountMinor BigInt   @map("amount_minor")
+  date        DateTime @db.Date
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@map("incomes")
 }
 
 model Session {

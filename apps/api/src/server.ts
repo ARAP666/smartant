@@ -4,6 +4,12 @@ import { parseConfig } from "./config.js";
 import { loginUser } from "./features/auth/login.js";
 import { registerUser } from "./features/auth/register.js";
 import { authenticateSession, logoutSession } from "./features/auth/session.js";
+import {
+  createIncome,
+  deleteIncome,
+  listIncomes,
+  updateIncome,
+} from "./features/incomes/incomes.js";
 import { getProfile, updateProfile } from "./features/profile/profile.js";
 import { createDatabase } from "./shared/db.js";
 
@@ -22,6 +28,13 @@ const app = createApp(
   {
     getProfile: (userId) => getProfile(database, userId),
     updateProfile: (userId, input) => updateProfile(database, userId, input),
+  },
+  {
+    listIncomes: (userId) => listIncomes(database, userId),
+    createIncome: (userId, input) => createIncome(database, userId, input),
+    updateIncome: (userId, id, input) =>
+      updateIncome(database, userId, id, input),
+    deleteIncome: (userId, id) => deleteIncome(database, userId, id),
   },
 );
 
