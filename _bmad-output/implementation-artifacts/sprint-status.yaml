@@ -11,7 +11,7 @@
 # Retrospective: optional | done
 
 generated: 2026-06-20
-last_updated: 2026-06-21
+last_updated: 2026-06-25
 project: Smart Ant
 project_key: NOKEY
 tracking_system: file-system
@@ -41,27 +41,27 @@ development_status:
   3-5-editar-o-eliminar-gastos: review
   epic-3-retrospective: optional
 
-  epic-4: backlog
+  epic-4: in-progress
   4-1-consultar-resumen-financiero: review
   4-2-cambiar-periodo: review
   4-3-consultar-historial: review
   4-4-ver-gastos-por-categoria: review
   epic-4-retrospective: optional
 
-  epic-5: backlog
+  epic-5: in-progress
   5-1-tomar-o-seleccionar-una-fotografia: review
   5-2-detectar-datos-del-recibo: review
   5-3-revisar-y-confirmar-recibo: review
   epic-5-retrospective: optional
 
-  epic-6: backlog
+  epic-6: in-progress
   6-1-seleccionar-y-leer-archivo: review
   6-2-asignar-columnas: review
   6-3-revisar-resultados: review
   6-4-confirmar-importacion: review
   epic-6-retrospective: optional
 
-  epic-7: backlog
+  epic-7: in-progress
   7-1-desplegar-api-y-postgresql-en-railway: review
   7-2-anadir-observabilidad-y-proteccion-operativa: review
   7-3-ejecutar-gate-de-produccion: review
