@@ -4,10 +4,12 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "db:migrate": "prisma migrate deploy",
     "dev": "tsx watch src/server.ts",
     "prisma:generate": "prisma generate",
     "seed:demo": "tsx scripts/seed-demo-user.ts",
     "start": "tsx src/server.ts",
+    "start:railway": "prisma migrate deploy && tsx src/server.ts",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
