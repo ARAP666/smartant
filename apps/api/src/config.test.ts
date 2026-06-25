@@ -14,7 +14,16 @@ describe("parseConfig", () => {
     });
   });
 
-  it("rejects a missing database URL", () => {
-    expect(() => parseConfig({})).toThrow();
+  it("uses the local sentDB URL outside production", () => {
+    expect(parseConfig({})).toEqual({
+      databaseUrl: "postgresql://postgres:postgres@localhost:5432/sentDB",
+      port: 3000,
+    });
+  });
+
+  it("requires a database URL in production", () => {
+    expect(() => parseConfig({ NODE_ENV: "production" })).toThrow(
+      "DATABASE_URL is required in production",
+    );
   });
 });
