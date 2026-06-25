@@ -10,6 +10,10 @@ import { getBearerToken } from "./features/auth/session.js";
 import { type BudgetInput, budgetSchema } from "./features/budgets/budgets.js";
 import { type IncomeInput, incomeSchema } from "./features/incomes/incomes.js";
 import {
+  type PendingMovementInput,
+  pendingMovementSchema,
+} from "./features/pending-movements/pending-movements.js";
+import {
   type ProfileInput,
   profileSchema,
 } from "./features/profile/profile.js";
@@ -73,6 +77,26 @@ type SavingsGoalDto = {
   active: boolean;
 };
 
+type PendingMovementDto = {
+  id: string;
+  amountMinor: string;
+  date: string;
+  description: string;
+  category: string;
+  status: string;
+};
+
+type EvaluationDto = {
+  baseBalance: string;
+  spendableBalance: string;
+  margins: Array<{
+    kind: string;
+    id?: string;
+    category?: string | null;
+    amountMinor: string;
+  }>;
+};
+
 type SalaryDto = {
   id: string;
   amountMinor: string;
@@ -124,6 +148,16 @@ export type SavingsGoalHandlers = {
     input: SavingsGoalInput,
   ) => Promise<{ savingsGoal: SavingsGoalDto }>;
   deleteSavingsGoal: (userId: string, id: string) => Promise<void>;
+};
+
+export type PendingMovementHandlers = {
+  evaluatePendingMovement: (
+    userId: string,
+    input: PendingMovementInput,
+  ) => Promise<{
+    pendingMovement: PendingMovementDto;
+    evaluation: EvaluationDto;
+  }>;
 };
 
 export type SalaryHandlers = {
@@ -210,6 +244,12 @@ const unavailableSavingsGoals: SavingsGoalHandlers = {
   },
 };
 
+const unavailablePendingMovements: PendingMovementHandlers = {
+  evaluatePendingMovement: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Pending movements unavailable");
+  },
+};
+
 const unavailableSalary: SalaryHandlers = {
   getSalary: async () => {
     throw new AppError(500, "NOT_CONFIGURED", "Salary unavailable");
@@ -236,6 +276,7 @@ export function createApp(
   salary: Partial<SalaryHandlers> = {},
   budgets: Partial<BudgetHandlers> = {},
   savingsGoals: Partial<SavingsGoalHandlers> = {},
+  pendingMovements: Partial<PendingMovementHandlers> = {},
 ) {
   const handlers =
     typeof auth === "function"
@@ -248,6 +289,10 @@ export function createApp(
   const savingsGoalHandlers = {
     ...unavailableSavingsGoals,
     ...savingsGoals,
+  };
+  const pendingMovementHandlers = {
+    ...unavailablePendingMovements,
+    ...pendingMovements,
   };
   const app = express();
   app.use(express.json());
@@ -549,6 +594,26 @@ export function createApp(
       const user = await authenticateRequest(request, handlers);
       await savingsGoalHandlers.deleteSavingsGoal(user.id, request.params.id);
       response.status(204).send();
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.post("/api/v1/pending-movements/evaluate", async (request, response) => {
+    const parsed = pendingMovementSchema.safeParse(request.body);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.status(201).json({
+        data: await pendingMovementHandlers.evaluatePendingMovement(
+          user.id,
+          parsed.data,
+        ),
+      });
     } catch (error) {
       sendError(response, error);
     }

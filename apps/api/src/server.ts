@@ -16,6 +16,7 @@ import {
   listIncomes,
   updateIncome,
 } from "./features/incomes/incomes.js";
+import { evaluatePendingMovement } from "./features/pending-movements/pending-movements.js";
 import { getProfile, updateProfile } from "./features/profile/profile.js";
 import {
   deleteSalary,
@@ -77,6 +78,10 @@ const app = createApp(
     updateSavingsGoal: (userId, id, input) =>
       updateSavingsGoal(database, userId, id, input),
     deleteSavingsGoal: (userId, id) => deleteSavingsGoal(database, userId, id),
+  },
+  {
+    evaluatePendingMovement: (userId, input) =>
+      evaluatePendingMovement(database, userId, input),
   },
 );
 

@@ -2,6 +2,7 @@
   "name": "@smart-ant/finance",
   "private": true,
   "type": "module",
+  "exports": "./src/index.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "type-check": "tsc --noEmit"

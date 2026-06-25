@@ -2,6 +2,10 @@ import type { LoginInput } from "@/features/auth/login-schema";
 import type { RegisterInput } from "@/features/auth/register-schema";
 import type { Budget, BudgetInput } from "@/features/budgets/budget-schema";
 import type { Income, IncomeInput } from "@/features/incomes/income-schema";
+import type {
+  PendingMovementEvaluation,
+  PendingMovementInput,
+} from "@/features/pending-movements/pending-movement-schema";
 import type { ProfileInput } from "@/features/profile/profile-schema";
 import type { Salary, SalaryInput } from "@/features/salary/salary-schema";
 import type {
@@ -102,6 +106,23 @@ export async function deleteIncome(token: string, id: string) {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
+}
+
+export async function evaluatePendingMovement(
+  token: string,
+  input: PendingMovementInput,
+) {
+  return request<PendingMovementEvaluation>(
+    "/api/v1/pending-movements/evaluate",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    },
+  );
 }
 
 export async function fetchSalary(token: string) {
