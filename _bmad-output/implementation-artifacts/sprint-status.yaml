@@ -1,0 +1,68 @@
+# generated: 2026-06-20
+# last_updated: 2026-06-21
+# project: Smart Ant
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# Epic: backlog | in-progress | done
+# Story: backlog | ready-for-dev | in-progress | review | done
+# Retrospective: optional | done
+
+generated: 2026-06-20
+last_updated: 2026-06-21
+project: Smart Ant
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  epic-1: in-progress
+  1-1-inicializar-smart-ant: review
+  1-2-mostrar-identidad-y-navegacion-base: review
+  1-3-crear-una-cuenta: review
+  1-4-iniciar-y-cerrar-sesion: review
+  1-5-configurar-contexto-financiero: review
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-gestionar-ingresos: backlog
+  2-2-configurar-salario-recurrente: backlog
+  2-3-crear-presupuestos: backlog
+  2-4-crear-metas-de-ahorro: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-calcular-saldo-gastable: backlog
+  3-2-evaluar-un-gasto-manual: backlog
+  3-3-mostrar-alertas-financieras: backlog
+  3-4-confirmar-un-gasto: backlog
+  3-5-editar-o-eliminar-gastos: backlog
+  epic-3-retrospective: optional
+
+  epic-4: backlog
+  4-1-consultar-resumen-financiero: backlog
+  4-2-cambiar-periodo: backlog
+  4-3-consultar-historial: backlog
+  4-4-ver-gastos-por-categoria: backlog
+  epic-4-retrospective: optional
+
+  epic-5: backlog
+  5-1-tomar-o-seleccionar-una-fotografia: backlog
+  5-2-detectar-datos-del-recibo: backlog
+  5-3-revisar-y-confirmar-recibo: backlog
+  epic-5-retrospective: optional
+
+  epic-6: backlog
+  6-1-seleccionar-y-leer-archivo: backlog
+  6-2-asignar-columnas: backlog
+  6-3-revisar-resultados: backlog
+  6-4-confirmar-importacion: backlog
+  epic-6-retrospective: optional
+
+  epic-7: backlog
+  7-1-desplegar-api-y-postgresql-en-railway: backlog
+  7-2-anadir-observabilidad-y-proteccion-operativa: backlog
+  7-3-ejecutar-gate-de-produccion: backlog
+  epic-7-retrospective: optional

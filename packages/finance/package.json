@@ -1,0 +1,9 @@
+{
+  "name": "@smart-ant/finance",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "type-check": "tsc --noEmit"
+  }
+}

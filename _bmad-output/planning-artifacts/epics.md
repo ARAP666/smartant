@@ -842,30 +842,7 @@ para mantener datos consistentes.
 
 El producto queda verificable y desplegable en Railway con configuración segura, migraciones, CI y observabilidad.
 
-### Story 7.1: Automatizar controles de calidad
-
-**Requisitos:** NFR-8, AR-2, AR-14.
-
-Como equipo,
-queremos validar cada cambio antes de integrarlo,
-para evitar regresiones.
-
-**Criterios de aceptación:**
-
-**Dado** un cambio enviado al repositorio
-**cuando** se ejecuta GitHub Actions
-**entonces** corre type-check, Biome, pruebas y builds con Node.js 24 LTS.
-
-**Dado** una validación fallida
-**cuando** termina el pipeline
-**entonces** el trabajo queda fallido.
-
-**Dado** un pull request sin secretos
-**cuando** ejecuta CI
-**entonces** puede completar todas las verificaciones
-**y** usa los mismos scripts disponibles localmente.
-
-### Story 7.2: Desplegar API y PostgreSQL en Railway
+### Story 7.1: Desplegar API y PostgreSQL en Railway
 
 **Requisitos:** AR-2, AR-13, AR-15, NFR-5.
 
@@ -895,7 +872,7 @@ para operar el backend fuera del equipo local.
 **cuando** se despliega
 **entonces** no requiere Docker salvo una necesidad demostrada.
 
-### Story 7.3: Añadir observabilidad y protección operativa
+### Story 7.2: Añadir observabilidad y protección operativa
 
 **Requisitos:** NFR-1, NFR-2, NFR-7, AR-3, AR-8.
 
@@ -922,7 +899,7 @@ para operar el sistema con seguridad.
 **cuando** se responde 500
 **entonces** el usuario recibe un mensaje seguro con `requestId`.
 
-### Story 7.4: Ejecutar gate de producción
+### Story 7.3: Ejecutar gate de producción
 
 **Requisitos:** NFR-1, NFR-2, NFR-3, NFR-4, NFR-5, NFR-6, NFR-7, NFR-8, AR-13, AR-15.
 

@@ -6,8 +6,10 @@ node_modules/
 !.env.production.example
 
 codegraph.db
+.codegraph/
 {output_folder}/
 
 dist/
 coverage/
 .expo/
+apps/api/src/generated/

@@ -1,0 +1,30 @@
+{
+  "name": "@smart-ant/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx watch src/server.ts",
+    "prisma:generate": "prisma generate",
+    "seed:demo": "tsx scripts/seed-demo-user.ts",
+    "start": "tsx src/server.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.0.0",
+    "@prisma/client": "^7.0.0",
+    "argon2": "^0.44.0",
+    "dotenv": "^17.0.0",
+    "express": "^5.0.0",
+    "pg": "^8.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/pg": "^8.0.0",
+    "@types/supertest": "^6.0.0",
+    "prisma": "^7.0.0",
+    "supertest": "^7.0.0",
+    "tsx": "^4.0.0"
+  }
+}
