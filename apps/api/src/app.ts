@@ -143,6 +143,12 @@ type FinancialSummaryDto = {
   empty: boolean;
 };
 
+type ExpenseCategoryDto = {
+  category: string;
+  amountMinor: string;
+  percentage: number;
+};
+
 type HistoryMovementDto = {
   id: string;
   type: "INCOME" | "EXPENSE";
@@ -245,6 +251,13 @@ export type SummaryHandlers = {
     userId: string,
     period: SummaryPeriod,
   ) => Promise<{ summary: FinancialSummaryDto }>;
+  getExpenseCategoryDistribution: (
+    userId: string,
+    period: SummaryPeriod,
+  ) => Promise<{
+    categories: ExpenseCategoryDto[];
+    totalExpenseMinor: string;
+  }>;
 };
 
 export type HistoryHandlers = {
@@ -364,6 +377,9 @@ const unavailableSalary: SalaryHandlers = {
 
 const unavailableSummary: SummaryHandlers = {
   getFinancialSummary: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Summary unavailable");
+  },
+  getExpenseCategoryDistribution: async () => {
     throw new AppError(500, "NOT_CONFIGURED", "Summary unavailable");
   },
 };
@@ -794,6 +810,26 @@ export function createApp(
       const user = await authenticateRequest(request, handlers);
       response.json({
         data: await summaryHandlers.getFinancialSummary(user.id, parsed.data),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.get("/api/v1/summary/categories", async (request, response) => {
+    const parsed = summaryPeriodSchema.safeParse(request.query.period);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({
+        data: await summaryHandlers.getExpenseCategoryDistribution(
+          user.id,
+          parsed.data,
+        ),
       });
     } catch (error) {
       sendError(response, error);

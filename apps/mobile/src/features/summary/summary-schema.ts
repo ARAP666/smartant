@@ -9,3 +9,9 @@ export type FinancialSummary = {
   spendableBalance: string;
   empty: boolean;
 };
+
+export type ExpenseCategory = {
+  category: string;
+  amountMinor: string;
+  percentage: number;
+};

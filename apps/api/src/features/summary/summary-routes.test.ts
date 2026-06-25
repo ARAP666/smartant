@@ -17,6 +17,10 @@ const summary = {
   spendableBalance: "25000",
   empty: false,
 };
+const categories = {
+  categories: [{ category: "Comida", amountMinor: "7500", percentage: 75 }],
+  totalExpenseMinor: "7500",
+};
 
 describe("summary routes", () => {
   it("returns the authenticated user's financial summary", async () => {
@@ -34,6 +38,15 @@ describe("summary routes", () => {
       .set("Authorization", "Bearer valid");
 
     expect(response.status).toBe(200);
+  });
+
+  it("returns expense categories for the selected period", async () => {
+    const response = await request(app())
+      .get("/api/v1/summary/categories?period=MONTHLY")
+      .set("Authorization", "Bearer valid");
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual(categories);
   });
 
   it("requires a session", async () => {
@@ -60,6 +73,7 @@ function app() {
     {},
     {
       getFinancialSummary: async () => ({ summary }),
+      getExpenseCategoryDistribution: async () => categories,
     },
   );
 }

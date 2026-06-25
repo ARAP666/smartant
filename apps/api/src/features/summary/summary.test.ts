@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { getFinancialSummary } from "./summary.js";
+import {
+  getExpenseCategoryDistribution,
+  getFinancialSummary,
+} from "./summary.js";
 
 describe("getFinancialSummary", () => {
   it("calculates a monthly summary for one user", async () => {
@@ -71,6 +74,32 @@ describe("getFinancialSummary", () => {
         period: { kind: "WEEKLY", start: "2026-06-22", end: "2026-06-28" },
         empty: true,
       },
+    });
+  });
+
+  it("groups expenses by category", async () => {
+    const database = {
+      expense: {
+        findMany: async () => [
+          { amountMinor: 7500n, category: "Comida" },
+          { amountMinor: 2500n, category: "Transporte" },
+        ],
+      },
+    };
+
+    await expect(
+      getExpenseCategoryDistribution(
+        database as never,
+        "user-id",
+        "MONTHLY",
+        new Date("2026-06-25T12:00:00.000Z"),
+      ),
+    ).resolves.toEqual({
+      categories: [
+        { category: "Comida", amountMinor: "7500", percentage: 75 },
+        { category: "Transporte", amountMinor: "2500", percentage: 25 },
+      ],
+      totalExpenseMinor: "10000",
     });
   });
 });

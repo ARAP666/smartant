@@ -2,7 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { SummaryPeriod } from "@/features/summary/summary-schema";
-import { fetchFinancialSummary } from "@/shared/api/client";
+import {
+  fetchExpenseCategories,
+  fetchFinancialSummary,
+} from "@/shared/api/client";
 import { getSessionToken } from "@/shared/auth/session";
 import { SmartAntWordmark } from "@/shared/components/SmartAntWordmark";
 
@@ -16,6 +19,14 @@ export default function HomeScreen() {
       const token = await getSessionToken();
       if (!token) throw new Error("Sesion requerida");
       return fetchFinancialSummary(token, period);
+    },
+  });
+  const categories = useQuery({
+    queryKey: ["expense-categories", period],
+    queryFn: async () => {
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      return fetchExpenseCategories(token, period);
     },
   });
   const data = summary.data?.summary;
@@ -101,6 +112,18 @@ export default function HomeScreen() {
           <Text style={styles.period}>
             {data.period.start} / {data.period.end} / {data.period.timeZone}
           </Text>
+          {categories.data?.categories.length ? (
+            <View style={styles.categories}>
+              {categories.data.categories.map((category) => (
+                <View key={category.category} style={styles.categoryRow}>
+                  <Text style={styles.metricLabel}>{category.category}</Text>
+                  <Text style={styles.metricValue}>
+                    {category.amountMinor} / {category.percentage}%
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -134,6 +157,14 @@ const styles = StyleSheet.create({
   },
   chartExpense: { backgroundColor: "#B84A3A" },
   chartIncome: { backgroundColor: "#176B55" },
+  categories: { gap: 8 },
+  categoryRow: {
+    borderColor: "#D7E7DE",
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 4,
+    padding: 12,
+  },
   grid: { gap: 12 },
   header: {
     alignItems: "center",

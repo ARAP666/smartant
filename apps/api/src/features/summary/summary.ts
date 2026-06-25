@@ -73,6 +73,47 @@ export async function getFinancialSummary(
   };
 }
 
+export async function getExpenseCategoryDistribution(
+  database: PrismaClient,
+  userId: string,
+  period: SummaryPeriod = "MONTHLY",
+  referenceDate = new Date(),
+) {
+  const { start, end } =
+    period === "WEEKLY"
+      ? weekBounds(referenceDate)
+      : monthBounds(referenceDate);
+  const expenses = await database.expense.findMany({
+    where: { userId, date: { gte: start, lt: end } },
+    select: { amountMinor: true, category: true },
+  });
+  const total = expenses.reduce(
+    (sum, expense) => sum + expense.amountMinor,
+    0n,
+  );
+  const byCategory = new Map<string, bigint>();
+  for (const expense of expenses) {
+    byCategory.set(
+      expense.category,
+      (byCategory.get(expense.category) ?? 0n) + expense.amountMinor,
+    );
+  }
+
+  return {
+    categories: [...byCategory.entries()]
+      .map(([category, amountMinor]) => ({
+        category,
+        amountMinor: amountMinor.toString(),
+        percentage:
+          total === 0n ? 0 : Number((amountMinor * 10000n) / total) / 100,
+      }))
+      .sort(
+        (left, right) => Number(right.amountMinor) - Number(left.amountMinor),
+      ),
+    totalExpenseMinor: total.toString(),
+  };
+}
+
 function monthBounds(referenceDate: Date) {
   const start = new Date(
     Date.UTC(referenceDate.getUTCFullYear(), referenceDate.getUTCMonth(), 1),

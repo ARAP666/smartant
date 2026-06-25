@@ -37,7 +37,10 @@ import {
   listSavingsGoals,
   updateSavingsGoal,
 } from "./features/savings-goals/savings-goals.js";
-import { getFinancialSummary } from "./features/summary/summary.js";
+import {
+  getExpenseCategoryDistribution,
+  getFinancialSummary,
+} from "./features/summary/summary.js";
 import { createDatabase } from "./shared/db.js";
 
 const config = parseConfig(process.env);
@@ -99,6 +102,8 @@ const app = createApp(
   {
     getFinancialSummary: (userId, period) =>
       getFinancialSummary(database, userId, period),
+    getExpenseCategoryDistribution: (userId, period) =>
+      getExpenseCategoryDistribution(database, userId, period),
   },
   {
     listMovementHistory: (userId, query) =>

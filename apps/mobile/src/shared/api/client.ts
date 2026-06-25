@@ -18,6 +18,7 @@ import type {
   SavingsGoalInput,
 } from "@/features/savings-goals/savings-goal-schema";
 import type {
+  ExpenseCategory,
   FinancialSummary,
   SummaryPeriod,
 } from "@/features/summary/summary-schema";
@@ -202,6 +203,18 @@ export async function fetchFinancialSummary(
       headers: { Authorization: `Bearer ${token}` },
     },
   );
+}
+
+export async function fetchExpenseCategories(
+  token: string,
+  period: SummaryPeriod,
+) {
+  return request<{
+    categories: ExpenseCategory[];
+    totalExpenseMinor: string;
+  }>(`/api/v1/summary/categories?period=${period}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 }
 
 export async function fetchSalary(token: string) {
