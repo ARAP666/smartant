@@ -5,6 +5,9 @@ describe("getFinancialSummary", () => {
   it("calculates a monthly summary for one user", async () => {
     const database = {
       $transaction: async (queries: unknown[]) => Promise.all(queries),
+      user: {
+        findUnique: async () => ({ timeZone: "America/Costa_Rica" }),
+      },
       income: {
         findMany: async () => [{ amountMinor: 100000n }],
       },
@@ -25,17 +28,48 @@ describe("getFinancialSummary", () => {
       getFinancialSummary(
         database as never,
         "user-id",
+        "MONTHLY",
         new Date("2026-06-25T12:00:00.000Z"),
       ),
     ).resolves.toEqual({
       summary: {
-        period: { kind: "MONTHLY", start: "2026-06-01", end: "2026-06-30" },
+        period: {
+          kind: "MONTHLY",
+          start: "2026-06-01",
+          end: "2026-06-30",
+          timeZone: "America/Costa_Rica",
+        },
         incomeTotal: "100000",
         expenseTotal: "25000",
         savingsGoalTotal: "10000",
         budgetTotal: "50000",
         spendableBalance: "25000",
         empty: false,
+      },
+    });
+  });
+
+  it("calculates weekly bounds", async () => {
+    const database = {
+      $transaction: async (queries: unknown[]) => Promise.all(queries),
+      user: { findUnique: async () => ({ timeZone: "UTC" }) },
+      income: { findMany: async () => [] },
+      expense: { findMany: async () => [] },
+      budget: { findMany: async () => [] },
+      savingsGoal: { findMany: async () => [] },
+    };
+
+    await expect(
+      getFinancialSummary(
+        database as never,
+        "user-id",
+        "WEEKLY",
+        new Date("2026-06-25T12:00:00.000Z"),
+      ),
+    ).resolves.toMatchObject({
+      summary: {
+        period: { kind: "WEEKLY", start: "2026-06-22", end: "2026-06-28" },
+        empty: true,
       },
     });
   });

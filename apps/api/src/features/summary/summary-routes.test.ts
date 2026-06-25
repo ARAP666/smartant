@@ -4,7 +4,12 @@ import { createApp } from "../../app.js";
 
 const user = { id: "user-id", email: "ana@example.com" };
 const summary = {
-  period: { kind: "MONTHLY", start: "2026-06-01", end: "2026-06-30" },
+  period: {
+    kind: "MONTHLY",
+    start: "2026-06-01",
+    end: "2026-06-30",
+    timeZone: "America/Costa_Rica",
+  },
   incomeTotal: "100000",
   expenseTotal: "25000",
   savingsGoalTotal: "10000",
@@ -21,6 +26,14 @@ describe("summary routes", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.data).toEqual({ summary });
+  });
+
+  it("accepts weekly summaries", async () => {
+    const response = await request(app())
+      .get("/api/v1/summary?period=WEEKLY")
+      .set("Authorization", "Bearer valid");
+
+    expect(response.status).toBe(200);
   });
 
   it("requires a session", async () => {

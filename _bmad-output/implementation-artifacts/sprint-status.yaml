@@ -43,7 +43,7 @@ development_status:
 
   epic-4: backlog
   4-1-consultar-resumen-financiero: review
-  4-2-cambiar-periodo: backlog
+  4-2-cambiar-periodo: review
   4-3-consultar-historial: backlog
   4-4-ver-gastos-por-categoria: backlog
   epic-4-retrospective: optional

@@ -31,6 +31,10 @@ import {
   type SavingsGoalInput,
   savingsGoalSchema,
 } from "./features/savings-goals/savings-goals.js";
+import {
+  type SummaryPeriod,
+  summaryPeriodSchema,
+} from "./features/summary/summary.js";
 import { AppError } from "./shared/errors.js";
 
 type RegistrationResult = {
@@ -126,7 +130,7 @@ type SalaryDto = {
 };
 
 type FinancialSummaryDto = {
-  period: { kind: string; start: string; end: string };
+  period: { kind: string; start: string; end: string; timeZone: string };
   incomeTotal: string;
   expenseTotal: string;
   savingsGoalTotal: string;
@@ -226,6 +230,7 @@ export type SalaryHandlers = {
 export type SummaryHandlers = {
   getFinancialSummary: (
     userId: string,
+    period: SummaryPeriod,
   ) => Promise<{ summary: FinancialSummaryDto }>;
 };
 
@@ -743,10 +748,16 @@ export function createApp(
   });
 
   app.get("/api/v1/summary", async (request, response) => {
+    const parsed = summaryPeriodSchema.safeParse(request.query.period);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
     try {
       const user = await authenticateRequest(request, handlers);
       response.json({
-        data: await summaryHandlers.getFinancialSummary(user.id),
+        data: await summaryHandlers.getFinancialSummary(user.id, parsed.data),
       });
     } catch (error) {
       sendError(response, error);

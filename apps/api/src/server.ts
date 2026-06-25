@@ -96,7 +96,8 @@ const app = createApp(
       deleteExpense(database, userId, expenseId),
   },
   {
-    getFinancialSummary: (userId) => getFinancialSummary(database, userId),
+    getFinancialSummary: (userId, period) =>
+      getFinancialSummary(database, userId, period),
   },
 );
 

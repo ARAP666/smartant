@@ -1,5 +1,7 @@
+export type SummaryPeriod = "WEEKLY" | "MONTHLY";
+
 export type FinancialSummary = {
-  period: { kind: string; start: string; end: string };
+  period: { kind: SummaryPeriod; start: string; end: string; timeZone: string };
   incomeTotal: string;
   expenseTotal: string;
   savingsGoalTotal: string;
