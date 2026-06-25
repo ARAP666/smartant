@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import {
   Pressable,
@@ -6,9 +7,14 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  View,
 } from "react-native";
 import { incomeSchema } from "@/features/incomes/income-schema";
 import { pendingMovementSchema } from "@/features/pending-movements/pending-movement-schema";
+import {
+  type ReceiptPhoto,
+  validateReceiptPhoto,
+} from "@/features/receipts/receipt-photo";
 import {
   confirmPendingMovement,
   createIncome,
@@ -29,6 +35,7 @@ export default function AddScreen() {
   );
   const [expenseDescription, setExpenseDescription] = useState("");
   const [expenseCategory, setExpenseCategory] = useState("");
+  const [receiptPhoto, setReceiptPhoto] = useState<ReceiptPhoto | null>(null);
   const [formError, setFormError] = useState("");
   const save = useMutation({
     mutationFn: async () => {
@@ -129,6 +136,41 @@ export default function AddScreen() {
       setExpenseCategory("");
     },
   });
+  async function selectReceiptPhoto(source: "camera" | "gallery") {
+    const token = await getSessionToken();
+    if (!token) {
+      setFormError("Sesion requerida");
+      return;
+    }
+    const permission =
+      source === "camera"
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setFormError("Permiso rechazado. Puedes registrar el gasto manualmente.");
+      return;
+    }
+    const result =
+      source === "camera"
+        ? await ImagePicker.launchCameraAsync({
+            mediaTypes: ["images"],
+            quality: 0.8,
+          })
+        : await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ["images"],
+            quality: 0.8,
+          });
+    if (result.canceled) return;
+    const photo = result.assets[0];
+    if (!photo) return;
+    const validationError = validateReceiptPhoto(photo);
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+    setReceiptPhoto(photo);
+    setFormError("");
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
@@ -169,6 +211,23 @@ export default function AddScreen() {
         </Text>
       </Pressable>
       <Text style={styles.title}>Evaluar gasto</Text>
+      <View style={styles.actions}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => selectReceiptPhoto("camera")}
+          style={styles.secondaryButton}
+        >
+          <Text style={styles.secondaryText}>Camara</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => selectReceiptPhoto("gallery")}
+          style={styles.secondaryButton}
+        >
+          <Text style={styles.secondaryText}>Galeria</Text>
+        </Pressable>
+      </View>
+      {receiptPhoto ? <Text>Foto lista: {receiptPhoto.uri}</Text> : null}
       <TextInput
         accessibilityLabel="Monto gasto"
         keyboardType="number-pad"
@@ -280,6 +339,7 @@ export default function AddScreen() {
 }
 
 const styles = StyleSheet.create({
+  actions: { flexDirection: "row", gap: 8 },
   button: {
     alignItems: "center",
     backgroundColor: "#176B55",
@@ -307,5 +367,15 @@ const styles = StyleSheet.create({
   label: { color: "#173F35", fontWeight: "700" },
   alert: { color: "#173F35", fontWeight: "700" },
   screen: { gap: 12, padding: 24 },
+  secondaryButton: {
+    alignItems: "center",
+    borderColor: "#176B55",
+    borderRadius: 8,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 44,
+    paddingHorizontal: 12,
+  },
+  secondaryText: { color: "#176B55", fontWeight: "700" },
   title: { color: "#173F35", fontSize: 24, fontWeight: "700" },
 });
