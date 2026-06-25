@@ -14,11 +14,40 @@ model User {
   currency     String    @default("CRC")
   timeZone     String    @default("America/Costa_Rica") @map("time_zone")
   incomes      Income[]
+  salary       Salary?
   sessions     Session[]
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
   @@map("users")
+}
+
+model Salary {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @unique @db.Uuid @map("user_id")
+  amountMinor BigInt      @map("amount_minor")
+  frequency   String
+  nextDate    DateTime    @db.Date @map("next_date")
+  pausedAt    DateTime?   @map("paused_at")
+  runs        SalaryRun[]
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("salaries")
+}
+
+model SalaryRun {
+  id        String   @id @default(uuid()) @db.Uuid
+  salaryId  String   @db.Uuid @map("salary_id")
+  incomeId  String   @unique @db.Uuid @map("income_id")
+  periodKey String   @map("period_key")
+  createdAt DateTime @default(now()) @map("created_at")
+  income    Income   @relation(fields: [incomeId], references: [id], onDelete: Cascade)
+  salary    Salary   @relation(fields: [salaryId], references: [id], onDelete: Cascade)
+
+  @@unique([salaryId, periodKey])
+  @@map("salary_runs")
 }
 
 model Income {
@@ -29,6 +58,7 @@ model Income {
   description String
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+  salaryRun   SalaryRun?
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, date])

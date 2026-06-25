@@ -11,6 +11,13 @@ import {
   updateIncome,
 } from "./features/incomes/incomes.js";
 import { getProfile, updateProfile } from "./features/profile/profile.js";
+import {
+  deleteSalary,
+  generateSalaryIncome,
+  getSalary,
+  pauseSalary,
+  upsertSalary,
+} from "./features/salary/salary.js";
 import { createDatabase } from "./shared/db.js";
 
 const config = parseConfig(process.env);
@@ -35,6 +42,14 @@ const app = createApp(
     updateIncome: (userId, id, input) =>
       updateIncome(database, userId, id, input),
     deleteIncome: (userId, id) => deleteIncome(database, userId, id),
+  },
+  {
+    getSalary: (userId) => getSalary(database, userId),
+    upsertSalary: (userId, input) => upsertSalary(database, userId, input),
+    pauseSalary: (userId, paused) => pauseSalary(database, userId, paused),
+    deleteSalary: (userId) => deleteSalary(database, userId),
+    generateSalaryIncome: (userId, input) =>
+      generateSalaryIncome(database, userId, input),
   },
 );
 

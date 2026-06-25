@@ -2,6 +2,7 @@ import type { LoginInput } from "@/features/auth/login-schema";
 import type { RegisterInput } from "@/features/auth/register-schema";
 import type { Income, IncomeInput } from "@/features/incomes/income-schema";
 import type { ProfileInput } from "@/features/profile/profile-schema";
+import type { Salary, SalaryInput } from "@/features/salary/salary-schema";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -93,6 +94,55 @@ export async function updateIncome(
 
 export async function deleteIncome(token: string, id: string) {
   await request<void>(`/api/v1/incomes/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function fetchSalary(token: string) {
+  return request<{ salary: Salary | null }>("/api/v1/salary", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function saveSalary(token: string, input: SalaryInput) {
+  return request<{ salary: Salary }>("/api/v1/salary", {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+}
+
+export async function pauseSalary(token: string, paused: boolean) {
+  return request<{ salary: Salary }>("/api/v1/salary/pause", {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ paused }),
+  });
+}
+
+export async function generateSalary(token: string) {
+  return request<{ income: Income; generated: boolean }>(
+    "/api/v1/salary/generate",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    },
+  );
+}
+
+export async function deleteSalary(token: string) {
+  await request<void>("/api/v1/salary", {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });

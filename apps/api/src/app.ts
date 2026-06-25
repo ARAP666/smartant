@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import express from "express";
+import { z } from "zod";
 import { type LoginInput, loginSchema } from "./features/auth/login.js";
 import {
   type RegisterInput,
@@ -11,6 +12,12 @@ import {
   type ProfileInput,
   profileSchema,
 } from "./features/profile/profile.js";
+import {
+  type SalaryGenerationInput,
+  type SalaryInput,
+  salaryGenerationSchema,
+  salarySchema,
+} from "./features/salary/salary.js";
 import { AppError } from "./shared/errors.js";
 
 type RegistrationResult = {
@@ -46,6 +53,15 @@ type IncomeDto = {
   description: string;
 };
 
+type SalaryDto = {
+  id: string;
+  amountMinor: string;
+  frequency: string;
+  nextDate: string;
+  pausedAt: Date | null;
+  paused: boolean;
+};
+
 export type IncomeHandlers = {
   listIncomes: (userId: string) => Promise<{ incomes: IncomeDto[] }>;
   createIncome: (
@@ -58,6 +74,23 @@ export type IncomeHandlers = {
     input: IncomeInput,
   ) => Promise<{ income: IncomeDto }>;
   deleteIncome: (userId: string, id: string) => Promise<void>;
+};
+
+export type SalaryHandlers = {
+  getSalary: (userId: string) => Promise<{ salary: SalaryDto | null }>;
+  upsertSalary: (
+    userId: string,
+    input: SalaryInput,
+  ) => Promise<{ salary: SalaryDto }>;
+  pauseSalary: (
+    userId: string,
+    paused: boolean,
+  ) => Promise<{ salary: SalaryDto }>;
+  deleteSalary: (userId: string) => Promise<void>;
+  generateSalaryIncome: (
+    userId: string,
+    input: SalaryGenerationInput,
+  ) => Promise<{ income: IncomeDto; generated: boolean }>;
 };
 
 const unavailable: AuthHandlers = {
@@ -97,11 +130,30 @@ const unavailableIncomes: IncomeHandlers = {
   },
 };
 
+const unavailableSalary: SalaryHandlers = {
+  getSalary: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Salary unavailable");
+  },
+  upsertSalary: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Salary unavailable");
+  },
+  pauseSalary: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Salary unavailable");
+  },
+  deleteSalary: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Salary unavailable");
+  },
+  generateSalaryIncome: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Salary unavailable");
+  },
+};
+
 export function createApp(
   checkDatabase: () => Promise<void>,
   auth: Partial<AuthHandlers> | AuthHandlers["register"] = {},
   profile: Partial<ProfileHandlers> = {},
   incomes: Partial<IncomeHandlers> = {},
+  salary: Partial<SalaryHandlers> = {},
 ) {
   const handlers =
     typeof auth === "function"
@@ -109,6 +161,7 @@ export function createApp(
       : { ...unavailable, ...auth };
   const profileHandlers = { ...unavailableProfile, ...profile };
   const incomeHandlers = { ...unavailableIncomes, ...incomes };
+  const salaryHandlers = { ...unavailableSalary, ...salary };
   const app = express();
   app.use(express.json());
 
@@ -298,6 +351,76 @@ export function createApp(
     }
   });
 
+  app.get("/api/v1/salary", async (request, response) => {
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({ data: await salaryHandlers.getSalary(user.id) });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.put("/api/v1/salary", async (request, response) => {
+    const parsed = salarySchema.safeParse(request.body);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({
+        data: await salaryHandlers.upsertSalary(user.id, parsed.data),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.patch("/api/v1/salary/pause", async (request, response) => {
+    const parsed = pauseSchema.safeParse(request.body);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({
+        data: await salaryHandlers.pauseSalary(user.id, parsed.data.paused),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.delete("/api/v1/salary", async (request, response) => {
+    try {
+      const user = await authenticateRequest(request, handlers);
+      await salaryHandlers.deleteSalary(user.id);
+      response.status(204).send();
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.post("/api/v1/salary/generate", async (request, response) => {
+    const parsed = salaryGenerationSchema.safeParse(request.body ?? {});
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.status(201).json({
+        data: await salaryHandlers.generateSalaryIncome(user.id, parsed.data),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
   return app;
 }
 
@@ -335,3 +458,5 @@ function validationError(error: { flatten: () => { fieldErrors: unknown } }) {
     fieldErrors: error.flatten().fieldErrors,
   });
 }
+
+const pauseSchema = z.object({ paused: z.boolean() });
