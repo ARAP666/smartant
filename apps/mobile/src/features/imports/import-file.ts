@@ -6,11 +6,8 @@ export type ImportFile = {
 };
 
 const maxImportFileBytes = 2 * 1024 * 1024;
-const acceptedExtensions = [".csv", ".xlsx"];
-const acceptedMimeTypes = new Set([
-  "text/csv",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-]);
+const acceptedExtensions = [".csv"];
+const acceptedMimeTypes = new Set(["text/csv"]);
 
 export function validateImportFile(file: ImportFile) {
   const lowerName = file.name.toLowerCase();
@@ -18,7 +15,7 @@ export function validateImportFile(file: ImportFile) {
     lowerName.endsWith(extension),
   );
   const validMime = file.mimeType ? acceptedMimeTypes.has(file.mimeType) : true;
-  if (!validExtension || !validMime) return "Selecciona un archivo CSV o XLSX";
+  if (!validExtension || !validMime) return "Selecciona un archivo CSV";
   if (file.size && file.size > maxImportFileBytes) {
     return "El archivo debe pesar 2 MB o menos";
   }

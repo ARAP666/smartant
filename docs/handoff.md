@@ -37,3 +37,4 @@ En produccion `DATABASE_URL` sigue siendo obligatorio.
 - Ejecutar deploy Railway y health check real.
 - Antes de EAS/APK, cambiar recibos a storage durable: guardar imagen en carpeta/storage y persistir ruta en DB.
 - Revisar advisories moderados transitivos cuando se haga upgrade de Expo/Prisma/React Native.
+- Importacion XLSX queda diferida hasta tener parser seguro o procesamiento backend; el cliente acepta CSV.

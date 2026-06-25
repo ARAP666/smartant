@@ -231,10 +231,7 @@ export default function AddScreen() {
     }
     const result = await DocumentPicker.getDocumentAsync({
       copyToCacheDirectory: true,
-      type: [
-        "text/csv",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      ],
+      type: ["text/csv"],
     });
     if (result.canceled) return;
     const file = result.assets[0];
@@ -244,11 +241,7 @@ export default function AddScreen() {
       setFormError(validationError);
       return;
     }
-    if (!file.name.toLowerCase().endsWith(".csv")) {
-      setFormError("Por ahora importa CSV. XLSX queda para el parser final.");
-      return;
-    }
-    const text = await fetch(file.uri).then((response) => response.text());
+    const text = await readImportText(file);
     const headers = parseCsvImport(text).headers;
     if (headers.length === 0) {
       setFormError("El CSV no tiene encabezados");
@@ -356,7 +349,7 @@ export default function AddScreen() {
           onPress={selectImportFile}
           style={styles.secondaryButton}
         >
-          <Text style={styles.secondaryText}>Importar CSV/XLSX</Text>
+          <Text style={styles.secondaryText}>Importar CSV</Text>
         </Pressable>
       </View>
       {importFile ? <Text>Archivo listo: {importFile.name}</Text> : null}
@@ -639,3 +632,7 @@ const styles = StyleSheet.create({
   secondaryText: { color: "#176B55", fontWeight: "700" },
   title: { color: "#173F35", fontSize: 24, fontWeight: "700" },
 });
+
+async function readImportText(file: ImportFile) {
+  return fetch(file.uri).then((response) => response.text());
+}
