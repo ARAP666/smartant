@@ -496,25 +496,24 @@ export function createApp(
   const receiptHandlers = { ...unavailableReceipts, ...receipts };
   const importHandlers = { ...unavailableImports, ...imports };
   const app = express();
+  app.disable("x-powered-by");
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 },
   });
-  app.use(express.json());
+  app.use(operationalMiddleware);
+  app.use(authRateLimit());
+  app.use(express.json({ limit: "256kb" }));
 
   app.get("/api/v1/health", async (_request, response) => {
     try {
       await checkDatabase();
       response.json({ data: { status: "ok", database: "ok" } });
     } catch {
-      response.status(503).json({
-        error: {
-          code: "DATABASE_UNAVAILABLE",
-          message: "Database unavailable",
-          details: {},
-          requestId: randomUUID(),
-        },
-      });
+      sendError(
+        response,
+        new AppError(503, "DATABASE_UNAVAILABLE", "Database unavailable"),
+      );
     }
   });
 
@@ -1109,7 +1108,10 @@ function sendError(response: express.Response, error: unknown) {
       code: safeError.code,
       message: safeError.message,
       details: safeError.details,
-      requestId: randomUUID(),
+      requestId:
+        typeof response.locals.requestId === "string"
+          ? response.locals.requestId
+          : randomUUID(),
     },
   });
 }
@@ -1131,3 +1133,73 @@ function validationError(error: { flatten: () => { fieldErrors: unknown } }) {
 }
 
 const pauseSchema = z.object({ paused: z.boolean() });
+
+function operationalMiddleware(
+  request: express.Request,
+  response: express.Response,
+  next: express.NextFunction,
+) {
+  const requestId = request.header("x-request-id") ?? randomUUID();
+  const startedAt = Date.now();
+  response.locals.requestId = requestId;
+  response.setHeader("X-Request-Id", requestId);
+  response.setHeader("X-Content-Type-Options", "nosniff");
+  response.setHeader("Referrer-Policy", "no-referrer");
+  response.setHeader("Cross-Origin-Resource-Policy", "same-site");
+  response.on("finish", () => {
+    console.log(
+      JSON.stringify({
+        level: "info",
+        event: "http_request",
+        requestId,
+        method: request.method,
+        path: request.path,
+        status: response.statusCode,
+        durationMs: Date.now() - startedAt,
+      }),
+    );
+  });
+  next();
+}
+
+function authRateLimit() {
+  const attempts = new Map<string, { count: number; resetAt: number }>();
+  const windowMs = 15 * 60 * 1000;
+  const maxAttempts = 20;
+
+  return (
+    request: express.Request,
+    response: express.Response,
+    next: express.NextFunction,
+  ) => {
+    if (
+      !["/api/v1/auth/login", "/api/v1/auth/register"].includes(request.path)
+    ) {
+      next();
+      return;
+    }
+
+    const now = Date.now();
+    const key = `${request.ip}:${request.path}`;
+    const current = attempts.get(key);
+    const attempt =
+      current && current.resetAt > now
+        ? { count: current.count + 1, resetAt: current.resetAt }
+        : { count: 1, resetAt: now + windowMs };
+    attempts.set(key, attempt);
+
+    if (attempt.count > maxAttempts) {
+      response.setHeader(
+        "Retry-After",
+        String(Math.ceil((attempt.resetAt - now) / 1000)),
+      );
+      sendError(
+        response,
+        new AppError(429, "RATE_LIMITED", "Too many authentication attempts"),
+      );
+      return;
+    }
+
+    next();
+  };
+}
