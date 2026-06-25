@@ -108,6 +108,51 @@ describe("pending movement routes", () => {
       .send({ idempotencyKey: "confirm-pending-id" });
     expect(unauthorized.status).toBe(401);
   });
+
+  it("updates an expense and returns the recalculated evaluation", async () => {
+    const response = await request(app())
+      .patch("/api/v1/expenses/expense-id")
+      .set("Authorization", "Bearer valid")
+      .send({
+        amountMinor: "15000",
+        date: "2026-06-26",
+        description: "Cena editada",
+        category: "Comida",
+        acceptedWarning: true,
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual({
+      expense: {
+        ...expense,
+        amountMinor: "15000",
+        date: "2026-06-26",
+        description: "Cena editada",
+      },
+      evaluation,
+    });
+  });
+
+  it("deletes an expense", async () => {
+    const response = await request(app())
+      .delete("/api/v1/expenses/expense-id")
+      .set("Authorization", "Bearer valid");
+
+    expect(response.status).toBe(204);
+  });
+
+  it("validates expense updates and requires a session", async () => {
+    const invalid = await request(app())
+      .patch("/api/v1/expenses/expense-id")
+      .set("Authorization", "Bearer valid")
+      .send({ amountMinor: "0", date: "bad", description: "", category: "" });
+    expect(invalid.status).toBe(422);
+
+    const unauthorized = await request(app()).delete(
+      "/api/v1/expenses/expense-id",
+    );
+    expect(unauthorized.status).toBe(401);
+  });
 });
 
 function app(
@@ -131,6 +176,16 @@ function app(
     {
       evaluatePendingMovement: async () => ({ pendingMovement, evaluation }),
       confirmPendingMovement: async () => ({ expense, created: true }),
+      updateExpense: async () => ({
+        expense: {
+          ...expense,
+          amountMinor: "15000",
+          date: "2026-06-26",
+          description: "Cena editada",
+        },
+        evaluation,
+      }),
+      deleteExpense: async () => undefined,
       ...pendingOverrides,
     },
   );

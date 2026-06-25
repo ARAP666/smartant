@@ -12,7 +12,9 @@ import { pendingMovementSchema } from "@/features/pending-movements/pending-move
 import {
   confirmPendingMovement,
   createIncome,
+  deleteExpense,
   evaluatePendingMovement,
+  updateExpense,
 } from "@/shared/api/client";
 import { getSessionToken } from "@/shared/auth/session";
 
@@ -79,6 +81,48 @@ export default function AddScreen() {
     },
     onSuccess: (data) => {
       if (!data) return;
+      queryClient.invalidateQueries({ queryKey: ["incomes"] });
+      setExpenseAmount(data.expense.amountMinor);
+      setExpenseDate(data.expense.date);
+      setExpenseDescription(data.expense.description);
+      setExpenseCategory(data.expense.category);
+    },
+  });
+  const confirmedExpense = confirm.data?.expense;
+  const editExpense = useMutation({
+    mutationFn: async () => {
+      if (!confirmedExpense) {
+        setFormError("Confirma un gasto antes de editar");
+        return null;
+      }
+      const parsed = pendingMovementSchema.safeParse({
+        amountMinor: expenseAmount,
+        date: expenseDate,
+        description: expenseDescription,
+        category: expenseCategory,
+      });
+      if (!parsed.success) {
+        setFormError("Revisa gasto, fecha, descripcion y categoria");
+        return null;
+      }
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      setFormError("");
+      return updateExpense(token, confirmedExpense.id, parsed.data);
+    },
+  });
+  const removeExpense = useMutation({
+    mutationFn: async () => {
+      if (!confirmedExpense) {
+        setFormError("Confirma un gasto antes de eliminar");
+        return;
+      }
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      setFormError("");
+      await deleteExpense(token, confirmedExpense.id);
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["incomes"] });
       setExpenseAmount("");
       setExpenseDescription("");
@@ -180,6 +224,33 @@ export default function AddScreen() {
           </Text>
         </Pressable>
       ) : null}
+      {confirmedExpense ? (
+        <>
+          <Pressable
+            accessibilityRole="button"
+            disabled={editExpense.isPending}
+            onPress={() => editExpense.mutate()}
+            style={[styles.button, editExpense.isPending && styles.disabled]}
+          >
+            <Text style={styles.buttonText}>
+              {editExpense.isPending ? "Guardando..." : "Guardar cambios gasto"}
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            disabled={removeExpense.isPending}
+            onPress={() => removeExpense.mutate()}
+            style={[
+              styles.dangerButton,
+              removeExpense.isPending && styles.disabled,
+            ]}
+          >
+            <Text style={styles.buttonText}>
+              {removeExpense.isPending ? "Eliminando..." : "Eliminar gasto"}
+            </Text>
+          </Pressable>
+        </>
+      ) : null}
       {formError ? <Text style={styles.error}>{formError}</Text> : null}
       {save.isError ? (
         <Text style={styles.error}>{save.error.message}</Text>
@@ -190,8 +261,20 @@ export default function AddScreen() {
       {confirm.isError ? (
         <Text style={styles.error}>{confirm.error.message}</Text>
       ) : null}
+      {editExpense.isError ? (
+        <Text style={styles.error}>{editExpense.error.message}</Text>
+      ) : null}
+      {removeExpense.isError ? (
+        <Text style={styles.error}>{removeExpense.error.message}</Text>
+      ) : null}
       {save.isSuccess && !formError ? <Text>Ingreso guardado</Text> : null}
       {confirm.isSuccess && !formError ? <Text>Gasto confirmado</Text> : null}
+      {editExpense.isSuccess && !formError ? (
+        <Text>Gasto actualizado</Text>
+      ) : null}
+      {removeExpense.isSuccess && !formError ? (
+        <Text>Gasto eliminado</Text>
+      ) : null}
     </ScrollView>
   );
 }
@@ -206,6 +289,13 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: "#FFFFFF", fontWeight: "700" },
   disabled: { opacity: 0.6 },
+  dangerButton: {
+    alignItems: "center",
+    backgroundColor: "#9B1C1C",
+    borderRadius: 10,
+    justifyContent: "center",
+    minHeight: 48,
+  },
   error: { color: "#9B1C1C" },
   input: {
     borderColor: "#9AA8A3",

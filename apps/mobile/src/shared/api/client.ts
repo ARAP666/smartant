@@ -146,6 +146,31 @@ export async function confirmPendingMovement(
   );
 }
 
+export async function updateExpense(
+  token: string,
+  expenseId: string,
+  input: PendingMovementInput,
+) {
+  return request<{
+    expense: ConfirmedExpense;
+    evaluation: PendingMovementEvaluation["evaluation"];
+  }>(`/api/v1/expenses/${expenseId}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ ...input, acceptedWarning: true }),
+  });
+}
+
+export async function deleteExpense(token: string, expenseId: string) {
+  await request<void>(`/api/v1/expenses/${expenseId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 export async function fetchSalary(token: string) {
   return request<{ salary: Salary | null }>("/api/v1/salary", {
     headers: { Authorization: `Bearer ${token}` },

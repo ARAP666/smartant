@@ -38,7 +38,7 @@ development_status:
   3-2-evaluar-un-gasto-manual: review
   3-3-mostrar-alertas-financieras: review
   3-4-confirmar-un-gasto: review
-  3-5-editar-o-eliminar-gastos: backlog
+  3-5-editar-o-eliminar-gastos: review
   epic-3-retrospective: optional
 
   epic-4: backlog

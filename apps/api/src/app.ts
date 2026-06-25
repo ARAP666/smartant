@@ -10,6 +10,8 @@ import { getBearerToken } from "./features/auth/session.js";
 import { type BudgetInput, budgetSchema } from "./features/budgets/budgets.js";
 import { type IncomeInput, incomeSchema } from "./features/incomes/incomes.js";
 import {
+  type ExpenseUpdateInput,
+  expenseUpdateSchema,
   type PendingMovementConfirmationInput,
   type PendingMovementInput,
   pendingMovementConfirmationSchema,
@@ -183,6 +185,15 @@ export type PendingMovementHandlers = {
     expense: ExpenseDto;
     created: boolean;
   }>;
+  updateExpense: (
+    userId: string,
+    expenseId: string,
+    input: ExpenseUpdateInput,
+  ) => Promise<{
+    expense: ExpenseDto;
+    evaluation: EvaluationDto;
+  }>;
+  deleteExpense: (userId: string, expenseId: string) => Promise<void>;
 };
 
 export type SalaryHandlers = {
@@ -275,6 +286,12 @@ const unavailablePendingMovements: PendingMovementHandlers = {
   },
   confirmPendingMovement: async () => {
     throw new AppError(500, "NOT_CONFIGURED", "Pending movements unavailable");
+  },
+  updateExpense: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Expenses unavailable");
+  },
+  deleteExpense: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Expenses unavailable");
   },
 };
 
@@ -669,6 +686,37 @@ export function createApp(
       }
     },
   );
+
+  app.patch("/api/v1/expenses/:id", async (request, response) => {
+    const parsed = expenseUpdateSchema.safeParse(request.body);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({
+        data: await pendingMovementHandlers.updateExpense(
+          user.id,
+          request.params.id,
+          parsed.data,
+        ),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.delete("/api/v1/expenses/:id", async (request, response) => {
+    try {
+      const user = await authenticateRequest(request, handlers);
+      await pendingMovementHandlers.deleteExpense(user.id, request.params.id);
+      response.status(204).send();
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
 
   app.get("/api/v1/salary", async (request, response) => {
     try {

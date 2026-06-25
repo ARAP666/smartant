@@ -26,10 +26,15 @@ export const pendingMovementConfirmationSchema = z.object({
   acceptedWarning: z.boolean().default(false),
 });
 
+export const expenseUpdateSchema = pendingMovementSchema.extend({
+  acceptedWarning: z.boolean().default(false),
+});
+
 export type PendingMovementInput = z.infer<typeof pendingMovementSchema>;
 export type PendingMovementConfirmationInput = z.infer<
   typeof pendingMovementConfirmationSchema
 >;
+export type ExpenseUpdateInput = z.infer<typeof expenseUpdateSchema>;
 
 export async function evaluatePendingMovement(
   database: PrismaClient,
@@ -191,6 +196,101 @@ export async function confirmPendingMovement(
   });
 }
 
+export async function updateExpense(
+  database: PrismaClient,
+  userId: string,
+  expenseId: string,
+  input: ExpenseUpdateInput,
+) {
+  return database.$transaction(async (transaction) => {
+    const currentExpense = await transaction.expense.findFirst({
+      where: { id: expenseId, userId },
+      select: expenseFields,
+    });
+    if (!currentExpense) throw expenseNotFound();
+
+    const [incomes, expenses, budgets, savingsGoals] = await Promise.all([
+      transaction.income.findMany({
+        where: { userId },
+        select: { amountMinor: true },
+      }),
+      transaction.expense.findMany({
+        where: { userId, NOT: { id: expenseId } },
+        select: { amountMinor: true, category: true },
+      }),
+      transaction.budget.findMany({
+        where: { userId, active: true },
+        select: { id: true, amountMinor: true, category: true },
+      }),
+      transaction.savingsGoal.findMany({
+        where: { userId, active: true },
+        select: { id: true, amountMinor: true },
+      }),
+    ]);
+    const evaluation = calculateSpendableBalance({
+      incomes,
+      expenses: [
+        ...expenses,
+        { amountMinor: input.amountMinor, category: input.category },
+      ],
+      budgets,
+      savingsGoals,
+      category: input.category,
+    });
+    const alerts = createFinancialAlerts({
+      spendableBalance: evaluation.spendableBalance,
+      expenseAmountMinor: input.amountMinor,
+      margins: evaluation.margins,
+    });
+    if (
+      !input.acceptedWarning &&
+      alerts.some((alert) => alert.severity === "BLOCKING")
+    ) {
+      throw new AppError(
+        409,
+        "WARNING_NOT_ACCEPTED",
+        "Expense update requires accepted warning",
+      );
+    }
+
+    const expense = await transaction.expense.update({
+      where: { id: expenseId },
+      data: {
+        amountMinor: input.amountMinor,
+        date: input.date,
+        description: input.description,
+        category: input.category,
+      },
+      select: expenseFields,
+    });
+
+    return {
+      expense: toExpenseDto(expense),
+      evaluation: toEvaluationDto(evaluation, alerts),
+    };
+  });
+}
+
+export async function deleteExpense(
+  database: PrismaClient,
+  userId: string,
+  expenseId: string,
+) {
+  await database.$transaction(async (transaction) => {
+    const expense = await transaction.expense.findFirst({
+      where: { id: expenseId, userId },
+      select: { id: true, pendingMovementId: true },
+    });
+    if (!expense) throw expenseNotFound();
+
+    await transaction.expense.delete({ where: { id: expense.id } });
+    await transaction.pendingMovement.update({
+      where: { id: expense.pendingMovementId },
+      data: { status: "PENDING" },
+    });
+  });
+}
+
 const pendingFields = {
   id: true,
   amountMinor: true,
@@ -244,10 +344,33 @@ function toExpenseDto(expense: {
   };
 }
 
+function toEvaluationDto(
+  evaluation: ReturnType<typeof calculateSpendableBalance>,
+  alerts: ReturnType<typeof createFinancialAlerts>,
+) {
+  return {
+    baseBalance: evaluation.baseBalance.toString(),
+    spendableBalance: evaluation.spendableBalance.toString(),
+    margins: evaluation.margins.map((margin) => ({
+      ...margin,
+      amountMinor: margin.amountMinor.toString(),
+    })),
+    alerts: alerts.map((alert) => ({
+      ...alert,
+      amountMinor: alert.amountMinor.toString(),
+      spendableBalance: alert.spendableBalance.toString(),
+    })),
+  };
+}
+
 function notFound() {
   return new AppError(
     404,
     "PENDING_MOVEMENT_NOT_FOUND",
     "Pending movement not found",
   );
+}
+
+function expenseNotFound() {
+  return new AppError(404, "EXPENSE_NOT_FOUND", "Expense not found");
 }
