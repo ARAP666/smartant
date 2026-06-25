@@ -14,6 +14,12 @@ import {
   type ImportFile,
   validateImportFile,
 } from "@/features/imports/import-file";
+import {
+  canContinueImport,
+  type ImportColumnRole,
+  type ImportMapping,
+  suggestImportMapping,
+} from "@/features/imports/import-mapping";
 import { incomeSchema } from "@/features/incomes/income-schema";
 import { pendingMovementSchema } from "@/features/pending-movements/pending-movement-schema";
 import {
@@ -43,6 +49,8 @@ export default function AddScreen() {
   const [expenseDescription, setExpenseDescription] = useState("");
   const [expenseCategory, setExpenseCategory] = useState("");
   const [importFile, setImportFile] = useState<ImportFile | null>(null);
+  const [importHeaders, setImportHeaders] = useState<string[]>([]);
+  const [importMapping, setImportMapping] = useState<ImportMapping>({});
   const [receiptPhoto, setReceiptPhoto] = useState<ReceiptPhoto | null>(null);
   const [receiptPendingMovementId, setReceiptPendingMovementId] = useState("");
   const [formError, setFormError] = useState("");
@@ -229,7 +237,16 @@ export default function AddScreen() {
       return;
     }
     setImportFile(file);
+    const headers = ["Fecha", "Monto", "Descripcion", "Categoria"];
+    setImportHeaders(headers);
+    setImportMapping(suggestImportMapping(headers));
     setFormError("");
+  }
+  function assignImportColumn(role: ImportColumnRole) {
+    const current = importMapping[role];
+    const currentIndex = current ? importHeaders.indexOf(current) : -1;
+    const next = importHeaders[(currentIndex + 1) % importHeaders.length];
+    setImportMapping((mapping) => ({ ...mapping, [role]: next }));
   }
 
   return (
@@ -281,6 +298,31 @@ export default function AddScreen() {
         </Pressable>
       </View>
       {importFile ? <Text>Archivo listo: {importFile.name}</Text> : null}
+      {importFile ? (
+        <View style={styles.importBox}>
+          {(["date", "amount", "description", "category"] as const).map(
+            (role) => (
+              <Pressable
+                accessibilityRole="button"
+                key={role}
+                onPress={() => assignImportColumn(role)}
+                style={styles.secondaryButton}
+              >
+                <Text style={styles.secondaryText}>
+                  {role}: {importMapping[role] ?? "Sin asignar"}
+                </Text>
+              </Pressable>
+            ),
+          )}
+          <Text>
+            Muestra: {importMapping.date ?? "Fecha"} /{" "}
+            {importMapping.amount ?? "Monto"}
+          </Text>
+          {!canContinueImport(importMapping) ? (
+            <Text style={styles.error}>Fecha y monto son obligatorios</Text>
+          ) : null}
+        </View>
+      ) : null}
       <View style={styles.actions}>
         <Pressable
           accessibilityRole="button"
@@ -460,6 +502,7 @@ const styles = StyleSheet.create({
   },
   label: { color: "#173F35", fontWeight: "700" },
   alert: { color: "#173F35", fontWeight: "700" },
+  importBox: { gap: 8 },
   screen: { gap: 12, padding: 24 },
   secondaryButton: {
     alignItems: "center",
