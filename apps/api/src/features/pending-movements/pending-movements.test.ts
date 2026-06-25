@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { pendingMovementSchema } from "./pending-movements.js";
+import {
+  pendingMovementConfirmationSchema,
+  pendingMovementSchema,
+} from "./pending-movements.js";
 
 describe("pendingMovementSchema", () => {
   it("parses valid pending movement input", () => {
@@ -27,5 +30,16 @@ describe("pendingMovementSchema", () => {
         category: "",
       }).success,
     ).toBe(false);
+  });
+
+  it("parses confirmation input with an optional accepted warning", () => {
+    expect(
+      pendingMovementConfirmationSchema.parse({
+        idempotencyKey: "confirm-pending-id",
+      }),
+    ).toEqual({
+      idempotencyKey: "confirm-pending-id",
+      acceptedWarning: false,
+    });
   });
 });

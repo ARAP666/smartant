@@ -10,7 +10,9 @@ import { getBearerToken } from "./features/auth/session.js";
 import { type BudgetInput, budgetSchema } from "./features/budgets/budgets.js";
 import { type IncomeInput, incomeSchema } from "./features/incomes/incomes.js";
 import {
+  type PendingMovementConfirmationInput,
   type PendingMovementInput,
+  pendingMovementConfirmationSchema,
   pendingMovementSchema,
 } from "./features/pending-movements/pending-movements.js";
 import {
@@ -84,6 +86,15 @@ type PendingMovementDto = {
   description: string;
   category: string;
   status: string;
+};
+
+type ExpenseDto = {
+  id: string;
+  pendingMovementId: string;
+  amountMinor: string;
+  date: string;
+  description: string;
+  category: string;
 };
 
 type EvaluationDto = {
@@ -163,6 +174,14 @@ export type PendingMovementHandlers = {
   ) => Promise<{
     pendingMovement: PendingMovementDto;
     evaluation: EvaluationDto;
+  }>;
+  confirmPendingMovement: (
+    userId: string,
+    pendingMovementId: string,
+    input: PendingMovementConfirmationInput,
+  ) => Promise<{
+    expense: ExpenseDto;
+    created: boolean;
   }>;
 };
 
@@ -252,6 +271,9 @@ const unavailableSavingsGoals: SavingsGoalHandlers = {
 
 const unavailablePendingMovements: PendingMovementHandlers = {
   evaluatePendingMovement: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Pending movements unavailable");
+  },
+  confirmPendingMovement: async () => {
     throw new AppError(500, "NOT_CONFIGURED", "Pending movements unavailable");
   },
 };
@@ -624,6 +646,29 @@ export function createApp(
       sendError(response, error);
     }
   });
+
+  app.post(
+    "/api/v1/pending-movements/:id/confirm",
+    async (request, response) => {
+      const parsed = pendingMovementConfirmationSchema.safeParse(request.body);
+      if (!parsed.success) {
+        sendError(response, validationError(parsed.error));
+        return;
+      }
+
+      try {
+        const user = await authenticateRequest(request, handlers);
+        const data = await pendingMovementHandlers.confirmPendingMovement(
+          user.id,
+          request.params.id,
+          parsed.data,
+        );
+        response.status(data.created ? 201 : 200).json({ data });
+      } catch (error) {
+        sendError(response, error);
+      }
+    },
+  );
 
   app.get("/api/v1/salary", async (request, response) => {
     try {

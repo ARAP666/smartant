@@ -23,3 +23,8 @@ export type PendingMovementEvaluation = {
     }>;
   };
 };
+
+export type ConfirmedExpense = PendingMovementInput & {
+  id: string;
+  pendingMovementId: string;
+};

@@ -1,6 +1,10 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
-import { type AuthHandlers, createApp } from "../../app.js";
+import {
+  type AuthHandlers,
+  createApp,
+  type PendingMovementHandlers,
+} from "../../app.js";
 
 const user = { id: "user-id", email: "ana@example.com" };
 const pendingMovement = {
@@ -23,6 +27,14 @@ const evaluation = {
       spendableBalance: "38000",
     },
   ],
+};
+const expense = {
+  id: "expense-id",
+  pendingMovementId: "pending-id",
+  amountMinor: "12000",
+  date: "2026-06-25",
+  description: "Cena",
+  category: "Comida",
 };
 
 describe("pending movement routes", () => {
@@ -58,9 +70,50 @@ describe("pending movement routes", () => {
       });
     expect(unauthorized.status).toBe(401);
   });
+
+  it("confirms a pending movement", async () => {
+    const response = await request(app())
+      .post("/api/v1/pending-movements/pending-id/confirm")
+      .set("Authorization", "Bearer valid")
+      .send({ idempotencyKey: "confirm-pending-id", acceptedWarning: true });
+
+    expect(response.status).toBe(201);
+    expect(response.body.data).toEqual({ expense, created: true });
+  });
+
+  it("returns an existing expense for an idempotent retry", async () => {
+    const response = await request(
+      app(
+        {},
+        { confirmPendingMovement: async () => ({ expense, created: false }) },
+      ),
+    )
+      .post("/api/v1/pending-movements/pending-id/confirm")
+      .set("Authorization", "Bearer valid")
+      .send({ idempotencyKey: "confirm-pending-id", acceptedWarning: true });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual({ expense, created: false });
+  });
+
+  it("validates confirmation input and requires a session", async () => {
+    const invalid = await request(app())
+      .post("/api/v1/pending-movements/pending-id/confirm")
+      .set("Authorization", "Bearer valid")
+      .send({ idempotencyKey: "" });
+    expect(invalid.status).toBe(422);
+
+    const unauthorized = await request(app())
+      .post("/api/v1/pending-movements/pending-id/confirm")
+      .send({ idempotencyKey: "confirm-pending-id" });
+    expect(unauthorized.status).toBe(401);
+  });
 });
 
-function app(overrides: Partial<AuthHandlers> = {}) {
+function app(
+  authOverrides: Partial<AuthHandlers> = {},
+  pendingOverrides: Partial<PendingMovementHandlers> = {},
+) {
   return createApp(
     async () => undefined,
     {
@@ -68,7 +121,7 @@ function app(overrides: Partial<AuthHandlers> = {}) {
       login: async () => ({ user, sessionToken: "valid" }),
       authenticate: async (token) => (token === "valid" ? user : null),
       logout: async () => undefined,
-      ...overrides,
+      ...authOverrides,
     },
     {},
     {},
@@ -77,6 +130,8 @@ function app(overrides: Partial<AuthHandlers> = {}) {
     {},
     {
       evaluatePendingMovement: async () => ({ pendingMovement, evaluation }),
+      confirmPendingMovement: async () => ({ expense, created: true }),
+      ...pendingOverrides,
     },
   );
 }

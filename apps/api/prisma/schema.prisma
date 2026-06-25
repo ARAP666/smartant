@@ -14,6 +14,7 @@ model User {
   currency     String    @default("CRC")
   timeZone     String    @default("America/Costa_Rica") @map("time_zone")
   budgets      Budget[]
+  expenses     Expense[]
   incomes      Income[]
   pendingMovements PendingMovement[]
   salary       Salary?
@@ -33,12 +34,31 @@ model PendingMovement {
   description String
   category    String
   status      String   @default("PENDING")
+  expense     Expense?
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, status])
   @@map("pending_movements")
+}
+
+model Expense {
+  id                String           @id @default(uuid()) @db.Uuid
+  userId            String           @db.Uuid @map("user_id")
+  pendingMovementId String           @unique @db.Uuid @map("pending_movement_id")
+  idempotencyKey    String           @unique @map("idempotency_key")
+  amountMinor       BigInt           @map("amount_minor")
+  date              DateTime         @db.Date
+  description       String
+  category          String
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  pendingMovement   PendingMovement  @relation(fields: [pendingMovementId], references: [id], onDelete: Cascade)
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@map("expenses")
 }
 
 model SavingsGoal {

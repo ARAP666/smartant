@@ -9,7 +9,11 @@ import {
 } from "react-native";
 import { incomeSchema } from "@/features/incomes/income-schema";
 import { pendingMovementSchema } from "@/features/pending-movements/pending-movement-schema";
-import { createIncome, evaluatePendingMovement } from "@/shared/api/client";
+import {
+  confirmPendingMovement,
+  createIncome,
+  evaluatePendingMovement,
+} from "@/shared/api/client";
 import { getSessionToken } from "@/shared/auth/session";
 
 export default function AddScreen() {
@@ -59,6 +63,26 @@ export default function AddScreen() {
       if (!token) throw new Error("Sesion requerida");
       setFormError("");
       return evaluatePendingMovement(token, parsed.data);
+    },
+  });
+  const confirm = useMutation({
+    mutationFn: async () => {
+      const pendingMovementId = evaluate.data?.pendingMovement.id;
+      if (!pendingMovementId) {
+        setFormError("Evalua el gasto antes de confirmar");
+        return null;
+      }
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      setFormError("");
+      return confirmPendingMovement(token, pendingMovementId);
+    },
+    onSuccess: (data) => {
+      if (!data) return;
+      queryClient.invalidateQueries({ queryKey: ["incomes"] });
+      setExpenseAmount("");
+      setExpenseDescription("");
+      setExpenseCategory("");
     },
   });
 
@@ -144,6 +168,18 @@ export default function AddScreen() {
           {alert.severity}: {alert.rule} - {alert.spendableBalance}
         </Text>
       ))}
+      {evaluate.data ? (
+        <Pressable
+          accessibilityRole="button"
+          disabled={confirm.isPending}
+          onPress={() => confirm.mutate()}
+          style={[styles.button, confirm.isPending && styles.disabled]}
+        >
+          <Text style={styles.buttonText}>
+            {confirm.isPending ? "Confirmando..." : "Confirmar gasto"}
+          </Text>
+        </Pressable>
+      ) : null}
       {formError ? <Text style={styles.error}>{formError}</Text> : null}
       {save.isError ? (
         <Text style={styles.error}>{save.error.message}</Text>
@@ -151,7 +187,11 @@ export default function AddScreen() {
       {evaluate.isError ? (
         <Text style={styles.error}>{evaluate.error.message}</Text>
       ) : null}
+      {confirm.isError ? (
+        <Text style={styles.error}>{confirm.error.message}</Text>
+      ) : null}
       {save.isSuccess && !formError ? <Text>Ingreso guardado</Text> : null}
+      {confirm.isSuccess && !formError ? <Text>Gasto confirmado</Text> : null}
     </ScrollView>
   );
 }

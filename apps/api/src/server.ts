@@ -16,7 +16,10 @@ import {
   listIncomes,
   updateIncome,
 } from "./features/incomes/incomes.js";
-import { evaluatePendingMovement } from "./features/pending-movements/pending-movements.js";
+import {
+  confirmPendingMovement,
+  evaluatePendingMovement,
+} from "./features/pending-movements/pending-movements.js";
 import { getProfile, updateProfile } from "./features/profile/profile.js";
 import {
   deleteSalary,
@@ -82,6 +85,8 @@ const app = createApp(
   {
     evaluatePendingMovement: (userId, input) =>
       evaluatePendingMovement(database, userId, input),
+    confirmPendingMovement: (userId, pendingMovementId, input) =>
+      confirmPendingMovement(database, userId, pendingMovementId, input),
   },
 );
 

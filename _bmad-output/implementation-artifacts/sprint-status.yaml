@@ -37,7 +37,7 @@ development_status:
   3-1-calcular-saldo-gastable: review
   3-2-evaluar-un-gasto-manual: review
   3-3-mostrar-alertas-financieras: review
-  3-4-confirmar-un-gasto: backlog
+  3-4-confirmar-un-gasto: review
   3-5-editar-o-eliminar-gastos: backlog
   epic-3-retrospective: optional
 

@@ -3,6 +3,7 @@ import type { RegisterInput } from "@/features/auth/register-schema";
 import type { Budget, BudgetInput } from "@/features/budgets/budget-schema";
 import type { Income, IncomeInput } from "@/features/incomes/income-schema";
 import type {
+  ConfirmedExpense,
   PendingMovementEvaluation,
   PendingMovementInput,
 } from "@/features/pending-movements/pending-movement-schema";
@@ -121,6 +122,26 @@ export async function evaluatePendingMovement(
         "Content-Type": "application/json",
       },
       body: JSON.stringify(input),
+    },
+  );
+}
+
+export async function confirmPendingMovement(
+  token: string,
+  pendingMovementId: string,
+) {
+  return request<{ expense: ConfirmedExpense; created: boolean }>(
+    `/api/v1/pending-movements/${pendingMovementId}/confirm`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        idempotencyKey: `confirm-${pendingMovementId}`,
+        acceptedWarning: true,
+      }),
     },
   );
 }
