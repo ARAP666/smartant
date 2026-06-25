@@ -64,5 +64,5 @@ development_status:
   epic-7: backlog
   7-1-desplegar-api-y-postgresql-en-railway: review
   7-2-anadir-observabilidad-y-proteccion-operativa: review
-  7-3-ejecutar-gate-de-produccion: backlog
+  7-3-ejecutar-gate-de-produccion: review
   epic-7-retrospective: optional
