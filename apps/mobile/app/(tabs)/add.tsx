@@ -20,7 +20,11 @@ import {
   type ImportMapping,
   suggestImportMapping,
 } from "@/features/imports/import-mapping";
-import { classifyImportRows } from "@/features/imports/import-preview";
+import {
+  buildImportPreviewRows,
+  classifyImportRows,
+  parseCsvImport,
+} from "@/features/imports/import-preview";
 import { incomeSchema } from "@/features/incomes/income-schema";
 import { pendingMovementSchema } from "@/features/pending-movements/pending-movement-schema";
 import {
@@ -51,6 +55,7 @@ export default function AddScreen() {
   const [expenseDescription, setExpenseDescription] = useState("");
   const [expenseCategory, setExpenseCategory] = useState("");
   const [importFile, setImportFile] = useState<ImportFile | null>(null);
+  const [importText, setImportText] = useState("");
   const [importHeaders, setImportHeaders] = useState<string[]>([]);
   const [importMapping, setImportMapping] = useState<ImportMapping>({});
   const [selectedImportRows, setSelectedImportRows] = useState<string[]>([]);
@@ -239,10 +244,21 @@ export default function AddScreen() {
       setFormError(validationError);
       return;
     }
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      setFormError("Por ahora importa CSV. XLSX queda para el parser final.");
+      return;
+    }
+    const text = await fetch(file.uri).then((response) => response.text());
+    const headers = parseCsvImport(text).headers;
+    if (headers.length === 0) {
+      setFormError("El CSV no tiene encabezados");
+      return;
+    }
     setImportFile(file);
-    const headers = ["Fecha", "Monto", "Descripcion", "Categoria"];
+    setImportText(text);
     setImportHeaders(headers);
     setImportMapping(suggestImportMapping(headers));
+    setSelectedImportRows([]);
     setFormError("");
   }
   function assignImportColumn(role: ImportColumnRole) {
@@ -251,24 +267,10 @@ export default function AddScreen() {
     const next = importHeaders[(currentIndex + 1) % importHeaders.length];
     setImportMapping((mapping) => ({ ...mapping, [role]: next }));
   }
-  const previewRows = importFile
-    ? classifyImportRows([
-        {
-          id: "row-1",
-          date: "2026-06-25",
-          amountMinor: "12000",
-          description: "Fila valida",
-          category: "Comida",
-        },
-        { id: "row-2", amountMinor: "9000", description: "Sin fecha" },
-        {
-          id: "row-3",
-          date: "2026-06-24",
-          amountMinor: "12000",
-          duplicateOf: "expense-id",
-        },
-      ])
-    : [];
+  const previewRows =
+    importFile && importText
+      ? classifyImportRows(buildImportPreviewRows(importText, importMapping))
+      : [];
   function toggleImportRow(rowId: string) {
     const row = previewRows.find((candidate) => candidate.id === rowId);
     if (row?.status !== "VALID") return;

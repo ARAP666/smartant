@@ -30,7 +30,8 @@ para que se registren como gastos y afecten mi saldo.
 
 - La importacion confirmada reutiliza `expenses` y `pending_movements` sin agregar tablas nuevas.
 - Cada fila se evalua con `calculateSpendableBalance` y reporta la severidad de alerta obtenida.
-- El parseo real del archivo sigue temporalmente simulado desde 6.3; 6.4 confirma solo las filas validas seleccionadas.
+- La confirmacion usa filas validas leidas desde CSV.
+- XLSX queda diferido hasta incorporar parser dedicado o procesamiento backend.
 
 ### File List
 

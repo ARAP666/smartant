@@ -27,7 +27,7 @@ para decidir cuales importar.
 
 ### Completion Notes List
 
-- La previsualizacion usa filas de ejemplo hasta tener parseo real del archivo.
+- La previsualizacion usa filas reales de CSV con encabezados.
 - Ninguna seleccion crea movimientos ni afecta calculos.
 - La confirmacion real queda para 6.4.
 
