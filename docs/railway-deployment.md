@@ -15,6 +15,7 @@ Set these on the API service:
 
 ```bash
 DATABASE_URL=<Railway PostgreSQL connection string>
+NODE_ENV=production
 PORT=3000
 ```
 
