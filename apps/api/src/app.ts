@@ -7,6 +7,7 @@ import {
   registerSchema,
 } from "./features/auth/register.js";
 import { getBearerToken } from "./features/auth/session.js";
+import { type BudgetInput, budgetSchema } from "./features/budgets/budgets.js";
 import { type IncomeInput, incomeSchema } from "./features/incomes/incomes.js";
 import {
   type ProfileInput,
@@ -53,6 +54,14 @@ type IncomeDto = {
   description: string;
 };
 
+type BudgetDto = {
+  id: string;
+  amountMinor: string;
+  period: string;
+  category: string | null;
+  active: boolean;
+};
+
 type SalaryDto = {
   id: string;
   amountMinor: string;
@@ -74,6 +83,20 @@ export type IncomeHandlers = {
     input: IncomeInput,
   ) => Promise<{ income: IncomeDto }>;
   deleteIncome: (userId: string, id: string) => Promise<void>;
+};
+
+export type BudgetHandlers = {
+  listBudgets: (userId: string) => Promise<{ budgets: BudgetDto[] }>;
+  createBudget: (
+    userId: string,
+    input: BudgetInput,
+  ) => Promise<{ budget: BudgetDto }>;
+  updateBudget: (
+    userId: string,
+    id: string,
+    input: BudgetInput,
+  ) => Promise<{ budget: BudgetDto }>;
+  deleteBudget: (userId: string, id: string) => Promise<void>;
 };
 
 export type SalaryHandlers = {
@@ -130,6 +153,21 @@ const unavailableIncomes: IncomeHandlers = {
   },
 };
 
+const unavailableBudgets: BudgetHandlers = {
+  listBudgets: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Budgets unavailable");
+  },
+  createBudget: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Budgets unavailable");
+  },
+  updateBudget: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Budgets unavailable");
+  },
+  deleteBudget: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Budgets unavailable");
+  },
+};
+
 const unavailableSalary: SalaryHandlers = {
   getSalary: async () => {
     throw new AppError(500, "NOT_CONFIGURED", "Salary unavailable");
@@ -154,6 +192,7 @@ export function createApp(
   profile: Partial<ProfileHandlers> = {},
   incomes: Partial<IncomeHandlers> = {},
   salary: Partial<SalaryHandlers> = {},
+  budgets: Partial<BudgetHandlers> = {},
 ) {
   const handlers =
     typeof auth === "function"
@@ -162,6 +201,7 @@ export function createApp(
   const profileHandlers = { ...unavailableProfile, ...profile };
   const incomeHandlers = { ...unavailableIncomes, ...incomes };
   const salaryHandlers = { ...unavailableSalary, ...salary };
+  const budgetHandlers = { ...unavailableBudgets, ...budgets };
   const app = express();
   app.use(express.json());
 
@@ -345,6 +385,63 @@ export function createApp(
     try {
       const user = await authenticateRequest(request, handlers);
       await incomeHandlers.deleteIncome(user.id, request.params.id);
+      response.status(204).send();
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.get("/api/v1/budgets", async (request, response) => {
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({ data: await budgetHandlers.listBudgets(user.id) });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.post("/api/v1/budgets", async (request, response) => {
+    const parsed = budgetSchema.safeParse(request.body);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.status(201).json({
+        data: await budgetHandlers.createBudget(user.id, parsed.data),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.patch("/api/v1/budgets/:id", async (request, response) => {
+    const parsed = budgetSchema.safeParse(request.body);
+    if (!parsed.success) {
+      sendError(response, validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({
+        data: await budgetHandlers.updateBudget(
+          user.id,
+          request.params.id,
+          parsed.data,
+        ),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.delete("/api/v1/budgets/:id", async (request, response) => {
+    try {
+      const user = await authenticateRequest(request, handlers);
+      await budgetHandlers.deleteBudget(user.id, request.params.id);
       response.status(204).send();
     } catch (error) {
       sendError(response, error);

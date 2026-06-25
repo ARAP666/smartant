@@ -1,5 +1,6 @@
 import type { LoginInput } from "@/features/auth/login-schema";
 import type { RegisterInput } from "@/features/auth/register-schema";
+import type { Budget, BudgetInput } from "@/features/budgets/budget-schema";
 import type { Income, IncomeInput } from "@/features/incomes/income-schema";
 import type { ProfileInput } from "@/features/profile/profile-schema";
 import type { Salary, SalaryInput } from "@/features/salary/salary-schema";
@@ -143,6 +144,45 @@ export async function generateSalary(token: string) {
 
 export async function deleteSalary(token: string) {
   await request<void>("/api/v1/salary", {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function fetchBudgets(token: string) {
+  return request<{ budgets: Budget[] }>("/api/v1/budgets", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function createBudget(token: string, input: BudgetInput) {
+  return request<{ budget: Budget }>("/api/v1/budgets", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateBudget(
+  token: string,
+  id: string,
+  input: BudgetInput,
+) {
+  return request<{ budget: Budget }>(`/api/v1/budgets/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+}
+
+export async function deleteBudget(token: string, id: string) {
+  await request<void>(`/api/v1/budgets/${id}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });

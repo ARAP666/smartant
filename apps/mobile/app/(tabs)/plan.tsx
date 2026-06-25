@@ -1,13 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { budgetSchema } from "@/features/budgets/budget-schema";
 import { salarySchema } from "@/features/salary/salary-schema";
 import {
+  createBudget,
+  deleteBudget,
   deleteSalary,
+  fetchBudgets,
   fetchSalary,
   generateSalary,
   pauseSalary,
   saveSalary,
+  updateBudget,
 } from "@/shared/api/client";
 import { getSessionToken } from "@/shared/auth/session";
 
@@ -18,6 +30,11 @@ export default function PlanScreen() {
   const [nextDate, setNextDate] = useState(
     new Date().toISOString().slice(0, 10),
   );
+  const [budgetAmount, setBudgetAmount] = useState("");
+  const [budgetPeriod, setBudgetPeriod] = useState<"WEEKLY" | "MONTHLY">(
+    "MONTHLY",
+  );
+  const [budgetCategory, setBudgetCategory] = useState("");
   const [formError, setFormError] = useState("");
   const salary = useQuery({
     queryKey: ["salary"],
@@ -25,6 +42,14 @@ export default function PlanScreen() {
       const token = await getSessionToken();
       if (!token) throw new Error("Sesion requerida");
       return fetchSalary(token);
+    },
+  });
+  const budgets = useQuery({
+    queryKey: ["budgets"],
+    queryFn: async () => {
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      return fetchBudgets(token);
     },
   });
   const save = useMutation({
@@ -74,6 +99,57 @@ export default function PlanScreen() {
     },
     onSuccess: () => queryClient.setQueryData(["salary"], { salary: null }),
   });
+  const saveBudget = useMutation({
+    mutationFn: async () => {
+      const parsed = budgetSchema.safeParse({
+        amountMinor: budgetAmount,
+        period: budgetPeriod,
+        category: budgetCategory || undefined,
+        active: true,
+      });
+      if (!parsed.success) {
+        setFormError("Revisa monto, periodo y categoria");
+        return null;
+      }
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      setFormError("");
+      return createBudget(token, parsed.data);
+    },
+    onSuccess: (data) => {
+      if (!data) return;
+      queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      setBudgetAmount("");
+      setBudgetCategory("");
+    },
+  });
+  const toggleBudget = useMutation({
+    mutationFn: async (budget: {
+      id: string;
+      amountMinor: string;
+      period: "WEEKLY" | "MONTHLY";
+      category?: string | null;
+      active: boolean;
+    }) => {
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      return updateBudget(token, budget.id, {
+        amountMinor: budget.amountMinor,
+        period: budget.period,
+        category: budget.category ?? undefined,
+        active: !budget.active,
+      });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["budgets"] }),
+  });
+  const removeBudget = useMutation({
+    mutationFn: async (id: string) => {
+      const token = await getSessionToken();
+      if (!token) throw new Error("Sesion requerida");
+      await deleteBudget(token, id);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["budgets"] }),
+  });
 
   useEffect(() => {
     const current = salary.data?.salary;
@@ -86,7 +162,7 @@ export default function PlanScreen() {
   const current = salary.data?.salary;
 
   return (
-    <View style={styles.screen}>
+    <ScrollView contentContainerStyle={styles.screen}>
       <Text style={styles.title}>Plan</Text>
       <Text style={styles.label}>Salario recurrente</Text>
       <TextInput
@@ -174,7 +250,88 @@ export default function PlanScreen() {
       {remove.isError ? (
         <Text style={styles.error}>{remove.error.message}</Text>
       ) : null}
-    </View>
+      <Text style={styles.label}>Presupuesto</Text>
+      <TextInput
+        accessibilityLabel="Monto presupuesto"
+        keyboardType="number-pad"
+        onChangeText={setBudgetAmount}
+        style={styles.input}
+        value={budgetAmount}
+      />
+      <View style={styles.actions}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setBudgetPeriod("WEEKLY")}
+          style={[
+            styles.segment,
+            budgetPeriod === "WEEKLY" && styles.segmentSelected,
+          ]}
+        >
+          <Text>Semanal</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setBudgetPeriod("MONTHLY")}
+          style={[
+            styles.segment,
+            budgetPeriod === "MONTHLY" && styles.segmentSelected,
+          ]}
+        >
+          <Text>Mensual</Text>
+        </Pressable>
+      </View>
+      <TextInput
+        accessibilityLabel="Categoria"
+        onChangeText={setBudgetCategory}
+        placeholder="General"
+        style={styles.input}
+        value={budgetCategory}
+      />
+      <Pressable
+        accessibilityRole="button"
+        disabled={saveBudget.isPending}
+        onPress={() => saveBudget.mutate()}
+        style={styles.button}
+      >
+        <Text style={styles.buttonText}>Guardar presupuesto</Text>
+      </Pressable>
+      {budgets.isPending ? <Text>Cargando presupuestos...</Text> : null}
+      {budgets.data?.budgets.map((budget) => (
+        <View key={budget.id} style={styles.budgetRow}>
+          <Text>
+            {budget.category ?? "General"} - {budget.period} -{" "}
+            {budget.amountMinor}
+          </Text>
+          <View style={styles.actions}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() =>
+                toggleBudget.mutate({
+                  ...budget,
+                  period: budget.period as "WEEKLY" | "MONTHLY",
+                })
+              }
+              style={styles.secondaryButton}
+            >
+              <Text>{budget.active ? "Desactivar" : "Activar"}</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => removeBudget.mutate(budget.id)}
+              style={styles.deleteButton}
+            >
+              <Text style={styles.deleteText}>Eliminar</Text>
+            </Pressable>
+          </View>
+        </View>
+      ))}
+      {budgets.isError ? (
+        <Text style={styles.error}>{budgets.error.message}</Text>
+      ) : null}
+      {saveBudget.isError ? (
+        <Text style={styles.error}>{saveBudget.error.message}</Text>
+      ) : null}
+    </ScrollView>
   );
 }
 
@@ -188,6 +345,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   buttonText: { color: "#FFFFFF", fontWeight: "700" },
+  budgetRow: { gap: 8, paddingVertical: 8 },
   deleteButton: {
     alignItems: "center",
     borderColor: "#9B1C1C",

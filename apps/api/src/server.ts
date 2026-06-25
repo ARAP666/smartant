@@ -5,6 +5,12 @@ import { loginUser } from "./features/auth/login.js";
 import { registerUser } from "./features/auth/register.js";
 import { authenticateSession, logoutSession } from "./features/auth/session.js";
 import {
+  createBudget,
+  deleteBudget,
+  listBudgets,
+  updateBudget,
+} from "./features/budgets/budgets.js";
+import {
   createIncome,
   deleteIncome,
   listIncomes,
@@ -50,6 +56,13 @@ const app = createApp(
     deleteSalary: (userId) => deleteSalary(database, userId),
     generateSalaryIncome: (userId, input) =>
       generateSalaryIncome(database, userId, input),
+  },
+  {
+    listBudgets: (userId) => listBudgets(database, userId),
+    createBudget: (userId, input) => createBudget(database, userId, input),
+    updateBudget: (userId, id, input) =>
+      updateBudget(database, userId, id, input),
+    deleteBudget: (userId, id) => deleteBudget(database, userId, id),
   },
 );
 

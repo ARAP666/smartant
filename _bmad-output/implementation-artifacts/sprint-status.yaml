@@ -29,7 +29,7 @@ development_status:
   epic-2: in-progress
   2-1-gestionar-ingresos: review
   2-2-configurar-salario-recurrente: review
-  2-3-crear-presupuestos: backlog
+  2-3-crear-presupuestos: review
   2-4-crear-metas-de-ahorro: backlog
   epic-2-retrospective: optional
 
