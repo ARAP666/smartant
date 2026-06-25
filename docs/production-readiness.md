@@ -14,6 +14,13 @@
 - Backups exist before production data changes.
 - Seed data is idempotent and non-destructive.
 
+## Receipt Images
+
+- Current receipt-photo handling is temporary and must not block feature stories while the app is still local/dev.
+- For production, replace in-memory receipt handling with durable image storage: save the image in a controlled folder or storage service and persist only the image path/reference in the database.
+- Do this before EAS/APK release work. When the project moves to EAS, APK generation, or production deployment, collect Railway credentials and any required storage/config values, then switch receipts to the production-safe storage method.
+- Do not treat missing production storage/OCR/provider details as a blocker for current app stories; those details are intentionally deferred until the production handoff.
+
 ## Security
 
 - Auth verified.
@@ -42,4 +49,3 @@ npm run build
 ```
 
 Add Playwright/E2E for the primary money/auth/admin workflows when risk warrants it.
-

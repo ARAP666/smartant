@@ -31,6 +31,7 @@ para evitar que un error afecte mis finanzas.
 - No se persisten fotografias; por tanto no hay archivo que retener o borrar.
 - La revision usa `PATCH /api/v1/pending-movements/:id/review`.
 - La confirmacion sigue usando `POST /api/v1/pending-movements/:id/confirm`.
+- Nota temporal: esto no bloquea historias locales. Antes de EAS/APK se debe guardar la imagen en folder/storage y persistir la ruta en base de datos; ver `docs/production-readiness.md`.
 
 ### File List
 

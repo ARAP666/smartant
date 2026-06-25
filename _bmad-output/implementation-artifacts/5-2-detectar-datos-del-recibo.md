@@ -32,6 +32,7 @@ para ahorrar tiempo.
 - OCR real queda fuera hasta configurar proveedor, almacenamiento y retencion.
 - La deteccion actual usa texto multipart opcional; si faltan campos crea valores revisables.
 - Los archivos se procesan en memoria y no se persisten.
+- Nota temporal: esto no bloquea historias locales. Antes de EAS/APK se debe guardar la imagen en folder/storage y persistir la ruta en base de datos; ver `docs/production-readiness.md`.
 
 ### File List
 
