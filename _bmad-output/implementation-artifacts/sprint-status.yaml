@@ -31,7 +31,7 @@ development_status:
   2-2-configurar-salario-recurrente: review
   2-3-crear-presupuestos: review
   2-4-crear-metas-de-ahorro: review
-  epic-2-retrospective: optional
+  epic-2-retrospective: done
 
   epic-3: in-progress
   3-1-calcular-saldo-gastable: review
