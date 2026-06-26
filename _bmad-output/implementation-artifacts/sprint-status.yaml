@@ -18,51 +18,51 @@ tracking_system: file-system
 story_location: _bmad-output/implementation-artifacts
 
 development_status:
-  epic-1: in-progress
-  1-1-inicializar-smart-ant: review
-  1-2-mostrar-identidad-y-navegacion-base: review
-  1-3-crear-una-cuenta: review
-  1-4-iniciar-y-cerrar-sesion: review
-  1-5-configurar-contexto-financiero: review
+  epic-1: done
+  1-1-inicializar-smart-ant: done
+  1-2-mostrar-identidad-y-navegacion-base: done
+  1-3-crear-una-cuenta: done
+  1-4-iniciar-y-cerrar-sesion: done
+  1-5-configurar-contexto-financiero: done
   epic-1-retrospective: done
 
-  epic-2: in-progress
-  2-1-gestionar-ingresos: review
-  2-2-configurar-salario-recurrente: review
-  2-3-crear-presupuestos: review
-  2-4-crear-metas-de-ahorro: review
+  epic-2: done
+  2-1-gestionar-ingresos: done
+  2-2-configurar-salario-recurrente: done
+  2-3-crear-presupuestos: done
+  2-4-crear-metas-de-ahorro: done
   epic-2-retrospective: done
 
-  epic-3: in-progress
-  3-1-calcular-saldo-gastable: review
-  3-2-evaluar-un-gasto-manual: review
-  3-3-mostrar-alertas-financieras: review
-  3-4-confirmar-un-gasto: review
-  3-5-editar-o-eliminar-gastos: review
+  epic-3: done
+  3-1-calcular-saldo-gastable: done
+  3-2-evaluar-un-gasto-manual: done
+  3-3-mostrar-alertas-financieras: done
+  3-4-confirmar-un-gasto: done
+  3-5-editar-o-eliminar-gastos: done
   epic-3-retrospective: done
 
-  epic-4: in-progress
-  4-1-consultar-resumen-financiero: review
-  4-2-cambiar-periodo: review
-  4-3-consultar-historial: review
-  4-4-ver-gastos-por-categoria: review
+  epic-4: done
+  4-1-consultar-resumen-financiero: done
+  4-2-cambiar-periodo: done
+  4-3-consultar-historial: done
+  4-4-ver-gastos-por-categoria: done
   epic-4-retrospective: done
 
-  epic-5: in-progress
-  5-1-tomar-o-seleccionar-una-fotografia: review
-  5-2-detectar-datos-del-recibo: review
-  5-3-revisar-y-confirmar-recibo: review
+  epic-5: done
+  5-1-tomar-o-seleccionar-una-fotografia: done
+  5-2-detectar-datos-del-recibo: done
+  5-3-revisar-y-confirmar-recibo: done
   epic-5-retrospective: done
 
-  epic-6: in-progress
-  6-1-seleccionar-y-leer-archivo: review
-  6-2-asignar-columnas: review
-  6-3-revisar-resultados: review
-  6-4-confirmar-importacion: review
+  epic-6: done
+  6-1-seleccionar-y-leer-archivo: done
+  6-2-asignar-columnas: done
+  6-3-revisar-resultados: done
+  6-4-confirmar-importacion: done
   epic-6-retrospective: done
 
-  epic-7: in-progress
-  7-1-desplegar-api-y-postgresql-en-railway: review
-  7-2-anadir-observabilidad-y-proteccion-operativa: review
-  7-3-ejecutar-gate-de-produccion: review
+  epic-7: done
+  7-1-desplegar-api-y-postgresql-en-railway: done
+  7-2-anadir-observabilidad-y-proteccion-operativa: done
+  7-3-ejecutar-gate-de-produccion: done
   epic-7-retrospective: done
