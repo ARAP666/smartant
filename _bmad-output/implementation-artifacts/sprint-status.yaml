@@ -59,7 +59,7 @@ development_status:
   6-2-asignar-columnas: review
   6-3-revisar-resultados: review
   6-4-confirmar-importacion: review
-  epic-6-retrospective: optional
+  epic-6-retrospective: done
 
   epic-7: in-progress
   7-1-desplegar-api-y-postgresql-en-railway: review
