@@ -46,7 +46,7 @@ development_status:
   4-2-cambiar-periodo: review
   4-3-consultar-historial: review
   4-4-ver-gastos-por-categoria: review
-  epic-4-retrospective: optional
+  epic-4-retrospective: done
 
   epic-5: in-progress
   5-1-tomar-o-seleccionar-una-fotografia: review
