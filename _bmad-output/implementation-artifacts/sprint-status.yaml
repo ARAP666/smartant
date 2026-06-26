@@ -52,7 +52,7 @@ development_status:
   5-1-tomar-o-seleccionar-una-fotografia: review
   5-2-detectar-datos-del-recibo: review
   5-3-revisar-y-confirmar-recibo: review
-  epic-5-retrospective: optional
+  epic-5-retrospective: done
 
   epic-6: in-progress
   6-1-seleccionar-y-leer-archivo: review
