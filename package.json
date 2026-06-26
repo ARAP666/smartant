@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "start": "npm run start --workspace @smart-ant/api",
+    "dev:lan": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-lan.ps1",
     "type-check": "npm run prisma:generate --workspace @smart-ant/api && npm run type-check --workspaces --if-present",
     "lint": "biome check .",
     "test": "vitest run",

@@ -16,6 +16,7 @@
 
 ```bash
 npm run start
+npm run dev:lan
 npm run lint
 npm run type-check
 npm test
@@ -29,6 +30,8 @@ postgresql://postgres:postgres@localhost:5432/sentDB
 ```
 
 En produccion `DATABASE_URL` sigue siendo obligatorio.
+
+Para Expo Go usa `npm run dev:lan`; detecta la IP LAN, arranca API y abre Expo con `EXPO_PUBLIC_API_URL` correcto para el telefono.
 
 ## Pendientes Reales Antes De Produccion
 
