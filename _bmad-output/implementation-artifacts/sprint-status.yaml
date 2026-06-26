@@ -24,7 +24,7 @@ development_status:
   1-3-crear-una-cuenta: review
   1-4-iniciar-y-cerrar-sesion: review
   1-5-configurar-contexto-financiero: review
-  epic-1-retrospective: optional
+  epic-1-retrospective: done
 
   epic-2: in-progress
   2-1-gestionar-ingresos: review
