@@ -1,50 +1,72 @@
-# Railway Deployment
+# Despliegue en Railway
 
-Status: prepared, not deployed.
+Estado: repositorio preparado; recursos externos no creados.
 
-This is the temporary Railway handoff for API + PostgreSQL. Credentials and the real Railway project are intentionally deferred until the production/EAS/APK handoff.
+## Contrato del repositorio
 
-## Required Railway Services
+Railway construye desde la raiz del repositorio. Detecta `Dockerfile`;
+`railway.json` define la migracion previa, el health check `/api/v1/health`, un
+timeout de 300 segundos y reinicio ante fallos.
 
-- PostgreSQL service.
-- API service built from the repository root using `Dockerfile`.
+La imagen usa Node 24 LTS e instala solo dependencias de produccion. Prisma y
+`tsx` son dependencias de runtime porque Railway necesita Prisma CLI en el
+pre-deploy y la API todavia ejecuta TypeScript directamente.
 
-## Required Variables
+## Crear los servicios
 
-Set these on the API service:
+1. Crear un proyecto Railway vacio y agregar su plantilla PostgreSQL.
+2. Agregar un servicio API conectado al repositorio y mantener `/` como root;
+   la API comparte el lockfile raiz y el workspace `packages/finance`.
+3. Generar un dominio publico para la API.
+4. Confirmar que Railway detecto `Dockerfile` y `railway.json` en la raiz.
+5. Activar backups de PostgreSQL antes de almacenar datos de produccion.
 
-```bash
-DATABASE_URL=<Railway PostgreSQL connection string>
+## Variables de la API
+
+Configurar en el servicio API:
+
+```text
+DATABASE_URL=${{Postgres.DATABASE_URL}}
 NODE_ENV=production
-PORT=3000
 ```
 
-Set this for the mobile build when the public API URL exists:
+Reemplazar `Postgres` si el servicio tiene otro nombre. Railway inyecta `PORT`;
+no fijarlo salvo que falle la deteccion automatica. Nunca exponer la URL de base
+de datos a EAS ni a la aplicacion movil.
+
+## Ciclo de despliegue
+
+Railway construye la imagen y ejecuta desde `railway.json`:
 
 ```bash
-EXPO_PUBLIC_API_URL=https://<railway-api-domain>
+npm run db:migrate --workspace @smart-ant/api
 ```
 
-## Deploy Behavior
-
-The API container runs:
+Una migracion con salida distinta de cero cancela el despliegue. Solo despues de
+una migracion exitosa Railway inicia el `CMD` de Docker:
 
 ```bash
-npm run start:railway --workspace @smart-ant/api
+npm run start --workspace @smart-ant/api
 ```
 
-That applies Prisma migrations with `prisma migrate deploy` and then starts `tsx src/server.ts`.
+Railway activa el despliegue solo cuando `GET /api/v1/health` devuelve `200`. El
+endpoint devuelve `503` si PostgreSQL no responde. Este health check protege la
+activacion; para monitoreo continuo se requiere un servicio separado.
 
-## Health Check
+## Conectar EAS
 
-Use:
+Despues de obtener el dominio HTTPS final, crear la misma variable publica en
+los ambientes EAS preview y production desde `apps/mobile`:
 
 ```bash
-GET /api/v1/health
+npx eas-cli@latest env:create --name EXPO_PUBLIC_API_URL --value https://<railway-domain> --environment preview --visibility plaintext
+npx eas-cli@latest env:create --name EXPO_PUBLIC_API_URL --value https://<railway-domain> --environment production --visibility plaintext
 ```
 
-The endpoint returns `503` until the API can reach PostgreSQL.
+Los valores `EXPO_PUBLIC_` se incluyen en el binario y no son secretos.
 
-## Temporary Production Note
+## Limite de recibos
 
-Receipt image handling remains local/dev only. Before EAS/APK or production use, switch to durable image storage by saving files in a controlled folder or storage service and persisting only the path/reference in the database.
+El endpoint actual recibe una imagen en memoria, deriva datos del movimiento
+pendiente y descarta los bytes. No habilitar OCR real ni retencion hasta aprobar
+proveedor, politica de retencion y almacenamiento privado durable.

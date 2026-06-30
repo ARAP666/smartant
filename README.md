@@ -48,4 +48,4 @@ npm run build
 
 ## Produccion
 
-Railway/EAS/APK estan preparados pero diferidos hasta tener credenciales y valores finales. Antes de APK/EAS, cambiar recibos a storage durable y guardar la ruta en base de datos.
+Railway/EAS estan configurados en el repositorio pero el despliegue queda diferido hasta tener credenciales, dominio y `projectId`. Las imagenes de recibos se descartan actualmente; antes de habilitar OCR o retencion se debe aprobar storage privado y su politica de eliminacion.
