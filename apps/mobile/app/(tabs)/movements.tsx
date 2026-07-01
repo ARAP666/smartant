@@ -22,6 +22,7 @@ import {
   updateIncome,
 } from "@/shared/api/client";
 import { getSessionToken } from "@/shared/auth/session";
+import { colors, fonts, radii, spacing } from "@/shared/theme";
 
 const pageSize = 20;
 
@@ -305,47 +306,57 @@ function FilterButton({
 
 const styles = StyleSheet.create({
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  activeButton: { backgroundColor: "#176B55" },
-  activeText: { color: "#FFFFFF" },
+  activeButton: { backgroundColor: colors.forest },
+  activeText: { color: colors.white },
   deleteButton: {
     alignItems: "center",
-    borderColor: "#9B1C1C",
-    borderRadius: 8,
+    borderColor: colors.red,
+    borderRadius: radii.full,
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 40,
     paddingHorizontal: 12,
   },
-  deleteText: { color: "#9B1C1C", fontWeight: "700" },
-  description: { color: "#173F35", fontWeight: "700" },
+  deleteText: { color: colors.red, fontFamily: fonts.bodyBold },
+  description: { color: colors.ink, fontFamily: fonts.bodyBold },
   disabled: { opacity: 0.5 },
   edit: { flex: 1, gap: 8 },
-  error: { color: "#9B1C1C" },
+  error: { color: colors.red, fontFamily: fonts.bodyMedium },
   filters: { gap: 8 },
   input: {
-    borderColor: "#9AA8A3",
-    borderRadius: 8,
-    borderWidth: 1,
-    minHeight: 44,
-    paddingHorizontal: 12,
+    backgroundColor: colors.surface,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    color: colors.ink,
+    fontFamily: fonts.body,
+    minHeight: 52,
+    paddingHorizontal: spacing[4],
   },
   movement: { flex: 1, gap: 3 },
   row: {
-    borderBottomColor: "#DDE5E1",
+    backgroundColor: colors.surface,
+    borderBottomColor: colors.border,
     borderBottomWidth: 1,
     gap: 8,
     paddingVertical: 12,
   },
   saveButton: {
     alignItems: "center",
-    borderColor: "#176B55",
-    borderRadius: 8,
+    borderColor: colors.forest,
+    borderRadius: radii.full,
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 40,
     paddingHorizontal: 12,
   },
-  saveText: { color: "#176B55", fontWeight: "700" },
-  screen: { gap: 12, padding: 24 },
-  title: { color: "#173F35", fontSize: 24, fontWeight: "700" },
+  saveText: { color: colors.forest, fontFamily: fonts.bodyBold },
+  screen: {
+    backgroundColor: colors.bg,
+    flexGrow: 1,
+    gap: spacing[3],
+    padding: spacing[5],
+    paddingBottom: spacing[8],
+  },
+  title: { color: colors.ink, fontFamily: fonts.display, fontSize: 28 },
 });

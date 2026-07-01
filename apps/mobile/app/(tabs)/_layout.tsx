@@ -8,11 +8,13 @@ import {
   Plus,
   User,
 } from "lucide-react-native";
+import { StyleSheet, View } from "react-native";
 import { tabs } from "@/navigation/tabs";
 import {
   loadCurrentSession,
   SESSION_QUERY_KEY,
 } from "@/shared/auth/current-session";
+import { colors, fonts, radii } from "@/shared/theme";
 
 const icons: Record<(typeof tabs)[number]["icon"], LucideIcon> = {
   Chart: ChartNoAxesColumn,
@@ -36,8 +38,10 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#176B55",
-        tabBarInactiveTintColor: "#53645F",
+        tabBarActiveTintColor: colors.forestStrong,
+        tabBarInactiveTintColor: colors.inkFaint,
+        tabBarLabelStyle: styles.label,
+        tabBarStyle: styles.bar,
       }}
     >
       {tabs.map((tab) => {
@@ -48,9 +52,14 @@ export default function TabsLayout() {
             name={tab.name}
             options={{
               tabBarAccessibilityLabel: tab.label,
-              tabBarIcon: ({ color, size }) => (
-                <Icon color={color} size={size} />
-              ),
+              tabBarIcon: ({ color, size }) =>
+                tab.name === "add" ? (
+                  <View style={styles.addCircle}>
+                    <Icon color={colors.white} size={size} strokeWidth={2.5} />
+                  </View>
+                ) : (
+                  <Icon color={color} size={size} strokeWidth={1.9} />
+                ),
               title: tab.label,
             }}
           />
@@ -59,3 +68,25 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  addCircle: {
+    alignItems: "center",
+    backgroundColor: colors.forest,
+    borderColor: colors.surface,
+    borderRadius: radii.full,
+    borderWidth: 4,
+    height: 56,
+    justifyContent: "center",
+    marginTop: -24,
+    width: 56,
+  },
+  bar: {
+    backgroundColor: colors.surface,
+    borderTopColor: colors.border,
+    height: 76,
+    paddingBottom: 8,
+    paddingTop: 10,
+  },
+  label: { fontFamily: fonts.bodyMedium, fontSize: 11 },
+});

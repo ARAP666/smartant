@@ -15,6 +15,80 @@ export const receiptDetectionSchema = z.object({
 
 export type ReceiptDetectionInput = z.infer<typeof receiptDetectionSchema>;
 
+type ReceiptAttachmentInput = {
+  originalName: string;
+  mimeType: "image/jpeg" | "image/png";
+  data: Uint8Array<ArrayBuffer>;
+};
+
+export async function saveReceiptAttachment(
+  database: PrismaClient,
+  userId: string,
+  expenseId: string,
+  input: ReceiptAttachmentInput,
+) {
+  const expense = await database.expense.findFirst({
+    where: { id: expenseId, userId },
+    select: { id: true },
+  });
+  if (!expense)
+    throw new AppError(404, "EXPENSE_NOT_FOUND", "Expense not found");
+
+  const attachment = await database.receiptAttachment.upsert({
+    where: { expenseId },
+    create: { ...input, expenseId, userId },
+    update: input,
+    select: { id: true, originalName: true, mimeType: true, updatedAt: true },
+  });
+  return { attachment };
+}
+
+export async function getReceiptAttachment(
+  database: PrismaClient,
+  userId: string,
+  expenseId: string,
+) {
+  const attachment = await database.receiptAttachment.findFirst({
+    where: { expenseId, userId },
+    select: {
+      id: true,
+      originalName: true,
+      mimeType: true,
+      data: true,
+      updatedAt: true,
+    },
+  });
+  if (!attachment)
+    throw new AppError(
+      404,
+      "RECEIPT_NOT_FOUND",
+      "Receipt attachment not found",
+    );
+  const { data, ...metadata } = attachment;
+  return {
+    attachment: {
+      ...metadata,
+      dataBase64: Buffer.from(data).toString("base64"),
+    },
+  };
+}
+
+export async function deleteReceiptAttachment(
+  database: PrismaClient,
+  userId: string,
+  expenseId: string,
+) {
+  const result = await database.receiptAttachment.deleteMany({
+    where: { expenseId, userId },
+  });
+  if (result.count === 0)
+    throw new AppError(
+      404,
+      "RECEIPT_NOT_FOUND",
+      "Receipt attachment not found",
+    );
+}
+
 export async function detectReceiptPendingMovement(
   database: PrismaClient,
   userId: string,

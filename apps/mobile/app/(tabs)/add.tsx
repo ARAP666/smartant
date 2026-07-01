@@ -39,9 +39,11 @@ import {
   detectReceipt,
   evaluatePendingMovement,
   reviewPendingMovement,
+  saveExpenseReceipt,
   updateExpense,
 } from "@/shared/api/client";
 import { getSessionToken } from "@/shared/auth/session";
+import { colors, fonts, radii, spacing } from "@/shared/theme";
 
 export default function AddScreen() {
   const queryClient = useQueryClient();
@@ -111,7 +113,10 @@ export default function AddScreen() {
       const token = await getSessionToken();
       if (!token) throw new Error("Sesion requerida");
       setFormError("");
-      return confirmPendingMovement(token, pendingMovementId);
+      const result = await confirmPendingMovement(token, pendingMovementId);
+      if (receiptPhoto)
+        await saveExpenseReceipt(token, result.expense.id, receiptPhoto);
+      return result;
     },
     onSuccess: (data) => {
       if (!data) return;
@@ -441,7 +446,11 @@ export default function AddScreen() {
           <Text style={styles.secondaryText}>Galeria</Text>
         </Pressable>
       </View>
-      {receiptPhoto ? <Text>Foto lista: {receiptPhoto.uri}</Text> : null}
+      {receiptPhoto ? (
+        <Text>
+          Imagen adjunta lista. Podés usar OCR o llenar el gasto manualmente.
+        </Text>
+      ) : null}
       {receiptPhoto ? (
         <Pressable
           accessibilityRole="button"
@@ -450,7 +459,9 @@ export default function AddScreen() {
           style={[styles.button, detect.isPending && styles.disabled]}
         >
           <Text style={styles.buttonText}>
-            {detect.isPending ? "Detectando..." : "Detectar recibo"}
+            {detect.isPending
+              ? "Detectando..."
+              : "Leer datos de la imagen (opcional)"}
           </Text>
         </Pressable>
       ) : null}
@@ -586,51 +597,61 @@ const styles = StyleSheet.create({
   actions: { flexDirection: "row", gap: 8 },
   button: {
     alignItems: "center",
-    backgroundColor: "#176B55",
-    borderRadius: 10,
+    backgroundColor: colors.forest,
+    borderRadius: radii.full,
     justifyContent: "center",
     minHeight: 48,
   },
-  buttonText: { color: "#FFFFFF", fontWeight: "700" },
+  buttonText: { color: colors.white, fontFamily: fonts.bodyBold },
   disabled: { opacity: 0.6 },
   dangerButton: {
     alignItems: "center",
-    backgroundColor: "#9B1C1C",
-    borderRadius: 10,
+    backgroundColor: colors.red,
+    borderRadius: radii.full,
     justifyContent: "center",
     minHeight: 48,
   },
-  error: { color: "#9B1C1C" },
+  error: { color: colors.red, fontFamily: fonts.bodyMedium },
   input: {
-    borderColor: "#9AA8A3",
-    borderRadius: 8,
-    borderWidth: 1,
-    minHeight: 48,
-    paddingHorizontal: 12,
+    backgroundColor: colors.surface,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    color: colors.ink,
+    fontFamily: fonts.body,
+    minHeight: 52,
+    paddingHorizontal: spacing[4],
   },
-  label: { color: "#173F35", fontWeight: "700" },
-  alert: { color: "#173F35", fontWeight: "700" },
+  label: { color: colors.ink, fontFamily: fonts.bodyBold },
+  alert: { color: colors.ink, fontFamily: fonts.bodyBold },
   importBox: { gap: 8 },
   previewRow: {
-    borderColor: "#D7E7DE",
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
     borderWidth: 1,
     gap: 4,
     padding: 10,
   },
-  previewSelected: { borderColor: "#176B55", borderWidth: 2 },
-  screen: { gap: 12, padding: 24 },
+  previewSelected: { borderColor: colors.forest, borderWidth: 2 },
+  screen: {
+    backgroundColor: colors.bg,
+    flexGrow: 1,
+    gap: spacing[3],
+    padding: spacing[5],
+    paddingBottom: spacing[8],
+  },
   secondaryButton: {
     alignItems: "center",
-    borderColor: "#176B55",
-    borderRadius: 8,
+    borderColor: colors.forest,
+    borderRadius: radii.full,
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 44,
     paddingHorizontal: 12,
   },
-  secondaryText: { color: "#176B55", fontWeight: "700" },
-  title: { color: "#173F35", fontSize: 24, fontWeight: "700" },
+  secondaryText: { color: colors.forest, fontFamily: fonts.bodyBold },
+  title: { color: colors.ink, fontFamily: fonts.display, fontSize: 28 },
 });
 
 async function readImportText(file: ImportFile) {

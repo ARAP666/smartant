@@ -322,6 +322,17 @@ export type ReceiptHandlers = {
     userId: string,
     input: ReceiptDetectionInput,
   ) => Promise<ReceiptDetectionDto>;
+  saveAttachment: (
+    userId: string,
+    expenseId: string,
+    input: {
+      originalName: string;
+      mimeType: "image/jpeg" | "image/png";
+      data: Uint8Array<ArrayBuffer>;
+    },
+  ) => Promise<unknown>;
+  getAttachment: (userId: string, expenseId: string) => Promise<unknown>;
+  deleteAttachment: (userId: string, expenseId: string) => Promise<void>;
 };
 
 export type ImportHandlers = {
@@ -451,6 +462,15 @@ const unavailableHistory: HistoryHandlers = {
 
 const unavailableReceipts: ReceiptHandlers = {
   detectReceiptPendingMovement: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Receipts unavailable");
+  },
+  saveAttachment: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Receipts unavailable");
+  },
+  getAttachment: async () => {
+    throw new AppError(500, "NOT_CONFIGURED", "Receipts unavailable");
+  },
+  deleteAttachment: async () => {
     throw new AppError(500, "NOT_CONFIGURED", "Receipts unavailable");
   },
 };
@@ -869,6 +889,63 @@ export function createApp(
       }
     },
   );
+
+  app.post(
+    "/api/v1/expenses/:id/receipt",
+    upload.single("receipt"),
+    async (request, response) => {
+      try {
+        const user = await authenticateRequest(request, handlers);
+        if (!request.file) {
+          sendError(response, invalidReceiptFile());
+          return;
+        }
+        const parsed = receiptDetectionSchema.safeParse({
+          originalName: request.file.originalname,
+          mimeType: request.file.mimetype,
+          size: request.file.size,
+        });
+        if (!parsed.success) {
+          sendError(response, validationError(parsed.error));
+          return;
+        }
+        response.status(201).json({
+          data: await receiptHandlers.saveAttachment(
+            user.id,
+            request.params.id as string,
+            {
+              originalName: parsed.data.originalName,
+              mimeType: parsed.data.mimeType,
+              data: Uint8Array.from(request.file.buffer),
+            },
+          ),
+        });
+      } catch (error) {
+        sendError(response, error);
+      }
+    },
+  );
+
+  app.get("/api/v1/expenses/:id/receipt", async (request, response) => {
+    try {
+      const user = await authenticateRequest(request, handlers);
+      response.json({
+        data: await receiptHandlers.getAttachment(user.id, request.params.id),
+      });
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
+
+  app.delete("/api/v1/expenses/:id/receipt", async (request, response) => {
+    try {
+      const user = await authenticateRequest(request, handlers);
+      await receiptHandlers.deleteAttachment(user.id, request.params.id);
+      response.status(204).send();
+    } catch (error) {
+      sendError(response, error);
+    }
+  });
 
   app.patch("/api/v1/expenses/:id", async (request, response) => {
     const parsed = expenseUpdateSchema.safeParse(request.body);

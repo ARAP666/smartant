@@ -17,6 +17,7 @@ model User {
   expenses     Expense[]
   incomes      Income[]
   pendingMovements PendingMovement[]
+  receiptAttachments ReceiptAttachment[]
   salary       Salary?
   savingsGoals SavingsGoal[]
   sessions     Session[]
@@ -55,10 +56,27 @@ model Expense {
   createdAt         DateTime         @default(now()) @map("created_at")
   updatedAt         DateTime         @updatedAt @map("updated_at")
   pendingMovement   PendingMovement  @relation(fields: [pendingMovementId], references: [id], onDelete: Cascade)
+  receiptAttachment ReceiptAttachment?
   user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, date])
   @@map("expenses")
+}
+
+model ReceiptAttachment {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid @map("user_id")
+  expenseId    String   @unique @db.Uuid @map("expense_id")
+  originalName String   @map("original_name")
+  mimeType     String   @map("mime_type")
+  data         Bytes
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  expense      Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("receipt_attachments")
 }
 
 model SavingsGoal {

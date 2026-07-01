@@ -26,7 +26,12 @@ import {
   updateExpense,
 } from "./features/pending-movements/pending-movements.js";
 import { getProfile, updateProfile } from "./features/profile/profile.js";
-import { detectReceiptPendingMovement } from "./features/receipts/receipts.js";
+import {
+  deleteReceiptAttachment,
+  detectReceiptPendingMovement,
+  getReceiptAttachment,
+  saveReceiptAttachment,
+} from "./features/receipts/receipts.js";
 import {
   deleteSalary,
   generateSalaryIncome,
@@ -117,6 +122,12 @@ const app = createApp(
   {
     detectReceiptPendingMovement: (userId, input) =>
       detectReceiptPendingMovement(database, userId, input),
+    saveAttachment: (userId, expenseId, input) =>
+      saveReceiptAttachment(database, userId, expenseId, input),
+    getAttachment: (userId, expenseId) =>
+      getReceiptAttachment(database, userId, expenseId),
+    deleteAttachment: async (userId, expenseId) =>
+      deleteReceiptAttachment(database, userId, expenseId),
   },
   {
     confirmImport: (userId, input) => confirmImport(database, userId, input),

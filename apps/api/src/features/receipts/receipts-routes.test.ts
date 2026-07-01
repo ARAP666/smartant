@@ -45,9 +45,45 @@ describe("receipt routes", () => {
       .set("Authorization", "Bearer valid");
     expect(invalid.status).toBe(422);
   });
+
+  it("stores, reads, and deletes an optional expense receipt", async () => {
+    const attachment = {
+      attachment: {
+        id: "attachment-id",
+        originalName: "receipt.jpg",
+        mimeType: "image/jpeg",
+      },
+    };
+    const testApp = app({
+      saveAttachment: async () => attachment,
+      getAttachment: async () => attachment,
+      deleteAttachment: async () => undefined,
+    });
+
+    const saved = await request(testApp)
+      .post("/api/v1/expenses/expense-id/receipt")
+      .set("Authorization", "Bearer valid")
+      .attach("receipt", Buffer.from("fake"), {
+        filename: "receipt.jpg",
+        contentType: "image/jpeg",
+      });
+    expect(saved.status).toBe(201);
+    expect(saved.body.data).toEqual(attachment);
+
+    const read = await request(testApp)
+      .get("/api/v1/expenses/expense-id/receipt")
+      .set("Authorization", "Bearer valid");
+    expect(read.status).toBe(200);
+    expect(read.body.data).toEqual(attachment);
+
+    const deleted = await request(testApp)
+      .delete("/api/v1/expenses/expense-id/receipt")
+      .set("Authorization", "Bearer valid");
+    expect(deleted.status).toBe(204);
+  });
 });
 
-function app() {
+function app(receiptOverrides = {}) {
   return createApp(
     async () => undefined,
     {
@@ -66,6 +102,7 @@ function app() {
     {},
     {
       detectReceiptPendingMovement: async () => receiptResult,
+      ...receiptOverrides,
     },
   );
 }

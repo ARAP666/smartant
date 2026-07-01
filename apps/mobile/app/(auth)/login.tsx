@@ -14,6 +14,7 @@ import { loginAccount } from "@/shared/api/client";
 import { SESSION_QUERY_KEY } from "@/shared/auth/current-session";
 import { saveSessionToken } from "@/shared/auth/session";
 import { SmartAntWordmark } from "@/shared/components/SmartAntWordmark";
+import { colors, fonts, radii, spacing } from "@/shared/theme";
 
 export default function LoginScreen() {
   const queryClient = useQueryClient();
@@ -48,14 +49,18 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.screen}>
       <View style={styles.form}>
         <SmartAntWordmark />
-        <Text style={styles.title}>Iniciar sesión</Text>
+        <Text style={styles.title}>Bienvenido de vuelta</Text>
+        <Text style={styles.subtitle}>
+          Entendé tu plata y avanzá un poco cada día.
+        </Text>
         <TextInput
           accessibilityLabel="Correo"
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
           onChangeText={setEmail}
-          placeholder="ana@example.com"
+          placeholder="vos@correo.com"
+          placeholderTextColor={colors.inkFaint}
           style={styles.input}
           value={email}
         />
@@ -67,6 +72,7 @@ export default function LoginScreen() {
           autoComplete="current-password"
           onChangeText={setPassword}
           placeholder="Contraseña"
+          placeholderTextColor={colors.inkFaint}
           secureTextEntry
           style={styles.input}
           value={password}
@@ -100,28 +106,42 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   button: {
     alignItems: "center",
-    backgroundColor: "#176B55",
-    borderRadius: 10,
+    backgroundColor: colors.forest,
+    borderRadius: radii.full,
     justifyContent: "center",
     minHeight: 48,
   },
-  buttonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
+  buttonText: { color: colors.white, fontFamily: fonts.bodyBold, fontSize: 16 },
   disabled: { opacity: 0.55 },
-  error: { color: "#9B1C1C" },
-  form: { gap: 12, width: "100%" },
+  error: { color: colors.red, fontFamily: fonts.bodyMedium },
+  form: { gap: spacing[4], width: "100%" },
   input: {
-    borderColor: "#7B8B86",
-    borderRadius: 10,
-    borderWidth: 1,
-    minHeight: 48,
-    paddingHorizontal: 14,
+    backgroundColor: colors.surface,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    color: colors.ink,
+    fontFamily: fonts.body,
+    minHeight: 52,
+    paddingHorizontal: spacing[4],
   },
-  link: { color: "#176B55", minHeight: 44, paddingVertical: 12 },
+  link: {
+    color: colors.forestStrong,
+    fontFamily: fonts.bodyBold,
+    minHeight: 44,
+    paddingVertical: 12,
+  },
   screen: {
-    backgroundColor: "#F7FBF7",
+    backgroundColor: colors.bg,
     flex: 1,
     justifyContent: "center",
-    padding: 24,
+    padding: spacing[6],
   },
-  title: { color: "#173F35", fontSize: 24, fontWeight: "700" },
+  subtitle: { color: colors.inkMuted, fontFamily: fonts.body },
+  title: {
+    color: colors.ink,
+    fontFamily: fonts.display,
+    fontSize: 32,
+    lineHeight: 38,
+  },
 });

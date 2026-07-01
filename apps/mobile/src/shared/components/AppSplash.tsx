@@ -4,8 +4,10 @@ import {
   Animated,
   Easing,
   StyleSheet,
+  Text,
   View,
 } from "react-native";
+import { colors, fonts, radii } from "@/shared/theme";
 import { SmartAntWordmark } from "./SmartAntWordmark";
 import { getSplashDuration } from "./splash-motion";
 
@@ -57,7 +59,11 @@ export function AppSplash({ onDone }: AppSplashProps) {
   return (
     <View style={styles.container}>
       <Animated.View style={{ opacity }}>
+        <View style={styles.mark}>
+          <SmartAntWordmark compact />
+        </View>
         <SmartAntWordmark />
+        <Text style={styles.tagline}>Pequeños pasos, gran progreso</Text>
       </Animated.View>
     </View>
   );
@@ -66,8 +72,24 @@ export function AppSplash({ onDone }: AppSplashProps) {
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    backgroundColor: "#F7FBF7",
+    backgroundColor: colors.bg,
     flex: 1,
     justifyContent: "center",
+  },
+  mark: {
+    alignItems: "center",
+    alignSelf: "center",
+    backgroundColor: colors.forest,
+    borderRadius: radii.xl,
+    height: 104,
+    justifyContent: "center",
+    marginBottom: 24,
+    width: 104,
+  },
+  tagline: {
+    color: colors.inkMuted,
+    fontFamily: fonts.body,
+    marginTop: 4,
+    textAlign: "center",
   },
 });

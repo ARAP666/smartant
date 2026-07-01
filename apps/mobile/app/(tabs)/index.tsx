@@ -1,13 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
+import {
+  Flame,
+  PiggyBank,
+  RefreshCw,
+  Sprout,
+  Target,
+} from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { SummaryPeriod } from "@/features/summary/summary-schema";
 import {
   fetchExpenseCategories,
   fetchFinancialSummary,
 } from "@/shared/api/client";
 import { getSessionToken } from "@/shared/auth/session";
+import {
+  Card,
+  IconChip,
+  ScreenTitle,
+} from "@/shared/components/DesignPrimitives";
 import { SmartAntWordmark } from "@/shared/components/SmartAntWordmark";
+import { formatMoney } from "@/shared/format-money";
+import { colors, fonts, radii, spacing } from "@/shared/theme";
 
 let sessionPeriod: SummaryPeriod = "MONTHLY";
 
@@ -42,18 +56,19 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={styles.screen}>
-      <SmartAntWordmark />
+    <ScrollView contentContainerStyle={styles.screen}>
       <View style={styles.header}>
-        <Text style={styles.title}>Inicio</Text>
+        <View style={styles.identity}>
+          <SmartAntWordmark />
+          <ScreenTitle eyebrow="Hola" title="Tu periodo" />
+        </View>
         <Pressable
+          accessibilityLabel="Actualizar resumen"
           accessibilityRole="button"
           onPress={() => summary.refetch()}
           style={styles.refresh}
         >
-          <Text style={styles.refreshText}>
-            {summary.isFetching ? "Actualizando" : "Actualizar"}
-          </Text>
+          <RefreshCw color={colors.forestStrong} size={18} />
         </Pressable>
       </View>
       <View style={styles.segments}>
@@ -86,28 +101,75 @@ export default function HomeScreen() {
           </Text>
         </Pressable>
       </View>
-      {summary.isLoading ? <Text>Cargando resumen</Text> : null}
+      {summary.isLoading ? (
+        <Text style={styles.muted}>Cargando resumen…</Text>
+      ) : null}
       {summary.isError ? (
         <Text style={styles.error}>{summary.error.message}</Text>
       ) : null}
       {data?.empty ? (
-        <Text>No hay datos financieros para este periodo</Text>
+        <Card muted>
+          <View style={styles.empty}>
+            <IconChip Icon={Sprout} size={72} />
+            <Text style={styles.cardTitle}>Así se ve cuando empezás</Text>
+            <Text style={styles.muted}>
+              Registrá tu primer movimiento y tu resumen aparecerá acá.
+            </Text>
+          </View>
+        </Card>
       ) : null}
       {data && !data.empty ? (
         <View style={styles.grid}>
-          <Metric label="Ingresos" value={data.incomeTotal} />
-          <Metric label="Gastos" value={data.expenseTotal} />
-          <Metric label="Meta de ahorro" value={data.savingsGoalTotal} />
-          <Metric label="Presupuesto" value={data.budgetTotal} />
-          {totalFlow > 0 ? (
-            <View style={styles.chart}>
-              <View style={[styles.chartIncome, { flex: incomeWidth }]} />
-              <View style={[styles.chartExpense, { flex: 1 - incomeWidth }]} />
-            </View>
-          ) : null}
           <View style={styles.balance}>
-            <Text style={styles.balanceLabel}>Saldo gastable</Text>
-            <Text style={styles.balanceValue}>{data.spendableBalance}</Text>
+            <Text style={styles.balanceLabel}>Balance disponible</Text>
+            <Text style={styles.balanceValue}>
+              {formatMoney(data.spendableBalance)}
+            </Text>
+            <View style={styles.flowRow}>
+              <View>
+                <Text style={styles.flowLabel}>Ingresos</Text>
+                <Text style={styles.flowValue}>
+                  {formatMoney(data.incomeTotal)}
+                </Text>
+              </View>
+              <View>
+                <Text style={styles.flowLabel}>Gastos</Text>
+                <Text style={styles.flowValue}>
+                  {formatMoney(data.expenseTotal)}
+                </Text>
+              </View>
+            </View>
+            {totalFlow > 0 ? (
+              <View style={styles.chart}>
+                <View style={[styles.chartIncome, { flex: incomeWidth }]} />
+                <View
+                  style={[styles.chartExpense, { flex: 1 - incomeWidth }]}
+                />
+              </View>
+            ) : null}
+          </View>
+          <Card>
+            <View style={styles.rewardRow}>
+              <IconChip Icon={Flame} tone="honey" />
+              <View style={styles.rewardText}>
+                <Text style={styles.cardTitle}>Tu progreso</Text>
+                <Text style={styles.muted}>
+                  Retos y recompensas · Próximamente
+                </Text>
+              </View>
+            </View>
+          </Card>
+          <View style={styles.metricGrid}>
+            <Metric
+              icon={PiggyBank}
+              label="Meta de ahorro"
+              value={formatMoney(data.savingsGoalTotal)}
+            />
+            <Metric
+              icon={Target}
+              label="Presupuesto"
+              value={formatMoney(data.budgetTotal)}
+            />
           </View>
           <Text style={styles.period}>
             {data.period.start} / {data.period.end} / {data.period.timeZone}
@@ -118,7 +180,7 @@ export default function HomeScreen() {
                 <View key={category.category} style={styles.categoryRow}>
                   <Text style={styles.metricLabel}>{category.category}</Text>
                   <Text style={styles.metricValue}>
-                    {category.amountMinor} / {category.percentage}%
+                    {formatMoney(category.amountMinor)} · {category.percentage}%
                   </Text>
                 </View>
               ))}
@@ -126,13 +188,22 @@ export default function HomeScreen() {
           ) : null}
         </View>
       ) : null}
-    </View>
+    </ScrollView>
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof PiggyBank;
+  label: string;
+  value: string;
+}) {
   return (
     <View style={styles.metric}>
+      <Icon color={colors.forest} size={16} />
       <Text style={styles.metricLabel}>{label}</Text>
       <Text style={styles.metricValue}>{value}</Text>
     </View>
@@ -141,77 +212,107 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   balance: {
-    backgroundColor: "#173F35",
-    borderRadius: 8,
-    gap: 6,
-    padding: 16,
+    backgroundColor: colors.forest,
+    borderRadius: radii.xl,
+    gap: spacing[3],
+    padding: spacing[6],
   },
-  balanceLabel: { color: "#D7E7DE", fontWeight: "700" },
-  balanceValue: { color: "#FFFFFF", fontSize: 28, fontWeight: "800" },
-  error: { color: "#9B1C1C" },
+  balanceLabel: {
+    color: colors.white,
+    fontFamily: fonts.bodyMedium,
+    opacity: 0.8,
+  },
+  balanceValue: { color: colors.white, fontFamily: fonts.amount, fontSize: 32 },
+  cardTitle: { color: colors.ink, fontFamily: fonts.bodyBold, fontSize: 16 },
+  empty: { alignItems: "center", gap: spacing[3] },
+  error: { color: colors.red, fontFamily: fonts.bodyMedium },
   chart: {
     flexDirection: "row",
-    height: 12,
+    height: 14,
     overflow: "hidden",
-    borderRadius: 6,
+    borderRadius: radii.full,
   },
-  chartExpense: { backgroundColor: "#B84A3A" },
-  chartIncome: { backgroundColor: "#176B55" },
-  categories: { gap: 8 },
+  chartExpense: { backgroundColor: colors.coral },
+  chartIncome: { backgroundColor: colors.white },
+  categories: { gap: spacing[2] },
   categoryRow: {
-    borderColor: "#D7E7DE",
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.md,
     borderWidth: 1,
-    gap: 4,
-    padding: 12,
+    gap: spacing[1],
+    padding: spacing[4],
   },
-  grid: { gap: 12 },
+  flowLabel: {
+    color: colors.white,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    opacity: 0.8,
+  },
+  flowRow: { flexDirection: "row", gap: spacing[7] },
+  flowValue: { color: colors.white, fontFamily: fonts.amount, fontSize: 16 },
+  grid: { gap: spacing[4] },
   header: {
-    alignItems: "center",
+    alignItems: "flex-start",
     flexDirection: "row",
     justifyContent: "space-between",
   },
+  identity: { gap: spacing[3] },
   metric: {
-    borderColor: "#D7E7DE",
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
     borderWidth: 1,
-    gap: 4,
-    padding: 14,
+    flex: 1,
+    gap: spacing[2],
+    padding: spacing[4],
   },
-  metricLabel: { color: "#517067", fontWeight: "700" },
-  metricValue: { color: "#173F35", fontSize: 22, fontWeight: "800" },
-  period: { color: "#517067", fontWeight: "700" },
+  metricGrid: { flexDirection: "row", gap: spacing[3] },
+  metricLabel: {
+    color: colors.inkMuted,
+    fontFamily: fonts.bodyBold,
+    fontSize: 12,
+  },
+  metricValue: { color: colors.ink, fontFamily: fonts.amount, fontSize: 16 },
+  muted: { color: colors.inkMuted, fontFamily: fonts.body },
+  period: {
+    color: colors.inkFaint,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+  },
   refresh: {
     alignItems: "center",
-    backgroundColor: "#176B55",
-    borderRadius: 8,
-    minHeight: 40,
-    minWidth: 104,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.full,
+    borderWidth: 1,
+    height: 40,
     justifyContent: "center",
-    paddingHorizontal: 12,
+    width: 40,
   },
-  refreshText: { color: "#FFFFFF", fontWeight: "700" },
+  rewardRow: { alignItems: "center", flexDirection: "row", gap: spacing[4] },
+  rewardText: { flex: 1, gap: spacing[1] },
   segment: {
     alignItems: "center",
-    borderColor: "#D7E7DE",
-    borderRadius: 8,
-    borderWidth: 1,
+    borderRadius: radii.full,
     flex: 1,
     minHeight: 40,
     justifyContent: "center",
   },
-  segmentActive: { backgroundColor: "#173F35", borderColor: "#173F35" },
-  segments: { flexDirection: "row", gap: 8 },
-  segmentText: { color: "#173F35", fontWeight: "700" },
-  segmentTextActive: { color: "#FFFFFF" },
-  screen: {
-    flex: 1,
-    gap: 18,
-    padding: 24,
+  segmentActive: { backgroundColor: colors.surface },
+  segments: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radii.full,
+    flexDirection: "row",
+    padding: 4,
   },
-  title: {
-    color: "#173F35",
-    fontSize: 24,
-    fontWeight: "700",
+  segmentText: { color: colors.inkMuted, fontFamily: fonts.bodyBold },
+  segmentTextActive: { color: colors.forestStrong },
+  screen: {
+    backgroundColor: colors.bg,
+    flexGrow: 1,
+    gap: spacing[5],
+    padding: spacing[5],
+    paddingBottom: spacing[8],
   },
 });

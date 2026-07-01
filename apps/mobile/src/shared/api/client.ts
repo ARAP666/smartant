@@ -207,6 +207,26 @@ export async function detectReceipt(token: string, photo: ReceiptPhoto) {
   });
 }
 
+export async function saveExpenseReceipt(
+  token: string,
+  expenseId: string,
+  photo: ReceiptPhoto,
+) {
+  const formData = new FormData();
+  formData.append("receipt", {
+    uri: photo.uri,
+    name: photo.fileName ?? "receipt.jpg",
+    type: photo.mimeType ?? "image/jpeg",
+  } as unknown as Blob);
+  return request<{
+    attachment: { id: string; originalName: string; mimeType: string };
+  }>(`/api/v1/expenses/${expenseId}/receipt`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+}
+
 export async function updateExpense(
   token: string,
   expenseId: string,
