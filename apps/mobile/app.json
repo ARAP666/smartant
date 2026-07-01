@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Smart Ant",
-    "slug": "smart-ant",
+    "slug": "smartant",
     "scheme": "smart-ant",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -30,6 +30,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9b68d45a-2cf7-48c2-9abd-a0cebf3a0725"
+      }
+    },
+    "owner": "fria"
   }
 }

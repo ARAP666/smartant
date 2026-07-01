@@ -23,16 +23,9 @@ pre-deploy y la API todavia ejecuta TypeScript directamente.
 
 ## Variables de la API
 
-Configurar en el servicio API:
-
-```text
-DATABASE_URL=${{Postgres.DATABASE_URL}}
-NODE_ENV=production
-```
-
-Reemplazar `Postgres` si el servicio tiene otro nombre. Railway inyecta `PORT`;
-no fijarlo salvo que falle la deteccion automatica. Nunca exponer la URL de base
-de datos a EAS ni a la aplicacion movil.
+Conectar PostgreSQL al servicio API desde Railway. Railway inyecta
+`DATABASE_URL` y `PORT`; no copiarlos al archivo local ni exponerlos a EAS. La
+imagen ya define `NODE_ENV=production`.
 
 ## Ciclo de despliegue
 

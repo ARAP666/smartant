@@ -61,8 +61,8 @@ pre-deploy; el arranque del contenedor ya no ejecuta migraciones.
 ## Pendientes Reales Antes De Produccion
 
 - Entregar credenciales Railway y crear servicios API + PostgreSQL.
-- Configurar `DATABASE_URL` como referencia al servicio Railway, generar el
-  dominio HTTPS y crear `EXPO_PUBLIC_API_URL` en EAS preview y production.
+- Conectar PostgreSQL al servicio API en Railway, generar el dominio HTTPS y
+  crear `EXPO_PUBLIC_API_URL` en EAS preview y production.
 - Ejecutar deploy Railway y health check real.
 - Ejecutar `eas init` con la cuenta propietaria y revisar `com.smartant.app` antes
   de la primera build firmada.
