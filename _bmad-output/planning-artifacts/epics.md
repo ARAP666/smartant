@@ -68,6 +68,21 @@ Este documento descompone los requisitos del PRD y la arquitectura de Smart Ant 
 - FR-45: Cuando existan alianzas verificadas, el usuario puede consultar y reclamar beneficios locales bajo condiciones explícitas.
 - FR-46: El usuario puede adjuntar opcionalmente una imagen de recibo a un gasto manual o detectado sin exigir OCR.
 - FR-47: El usuario puede consultar o eliminar la imagen adjunta sin eliminar el gasto ni alterar sus cálculos.
+- FR-48: El usuario puede alternar Inicio entre Día, Semana y Mes y cada periodo recalcula sus datos.
+- FR-49: La cuenta demo contiene datos abundantes y coherentes para presupuestos, gastos, ingresos, metas y estados límite.
+- FR-50: El usuario puede previsualizar y adjuntar una imagen a un gasto; la API la conserva como datos binarios privados sin base64 de almacenamiento.
+- FR-51: El usuario puede extraer datos útiles de un recibo mediante OCR, revisar el resultado y continuar manualmente si falla.
+- FR-52: Todo campo editable muestra etiqueta persistente, propósito, estado, validación y mensaje de error comprensible.
+- FR-53: Cada sección y acción visible de Plan permite consultar o modificar su dato real, o comunica por qué no está disponible.
+- FR-54: La navegación, el scroll y las expansiones usan movimiento coherente, cancelable y compatible con reducción de movimiento.
+- FR-55: El perfil permite administrar datos personales, moneda mediante selector y preferencias relevantes.
+- FR-56: El registro requiere aceptación explícita y versionada de Términos de uso y Política de privacidad accesibles.
+- FR-57: Una cuenta nueva debe confirmar su correo mediante un enlace seguro, expirable y reenviable.
+- FR-58: El usuario puede activar biometría opcional para recuperar localmente una sesión previamente autenticada.
+- FR-59: Splash, wordmark, icono y miniatura del dispositivo usan una misma identidad SmartAnt/SMA y activos coherentes.
+- FR-60: Inicio y Perfil muestran de forma inequívoca el journey, siguiente reto, XP, nivel, racha y avance cuando estén habilitados.
+- FR-61: Todo control interactivo ofrece una reacción visible y accesible y evita acciones aparentes sin comportamiento.
+- FR-62: El perfil permite consultar controles de privacidad, seguridad, sesiones y eliminación o exportación de cuenta cuando estén implementados.
 
 ### Requisitos no funcionales
 
@@ -86,7 +101,11 @@ Este documento descompone los requisitos del PRD y la arquitectura de Smart Ant 
 - NFR-13: Los eventos que otorgan progreso son idempotentes y auditables para evitar duplicación o fraude.
 - NFR-14: Las reglas de rewards son deterministas y versionadas para poder explicar resultados históricos.
 - NFR-15: Calcular el siguiente reto y el resumen de progreso no degrada perceptiblemente la carga normal de Inicio.
-- NFR-16: Las imágenes de recibos usan almacenamiento privado, acceso por propietario y una política explícita de retención y eliminación.
+- NFR-16: Las imágenes de recibos usan bytes privados, límite de tamaño, tipo validado, autorización por propietario y una política explícita de retención.
+- NFR-17: Las animaciones mantienen interacción fluida y respetan la preferencia del sistema de reducir movimiento.
+- NFR-18: Formularios y controles cumplen etiquetas accesibles, foco, contraste, tamaño táctil y mensajes no dependientes del color.
+- NFR-19: Consentimientos legales registran versión, fecha y usuario y los textos quedan sujetos a revisión legal costarricense antes de producción.
+- NFR-20: Verificación de correo usa tokens de un solo uso almacenados de forma no reversible, expiración y respuestas que no permiten enumerar cuentas.
 
 ### Requisitos adicionales de arquitectura
 
@@ -186,6 +205,11 @@ Este documento descompone los requisitos del PRD y la arquitectura de Smart Ant 
 - FR-45: Epic 9 - Beneficios locales verificados y reclamables.
 - FR-46: Epic 5 - Imagen de recibo opcional para gastos manuales o detectados.
 - FR-47: Epic 5 - Consulta y eliminación independiente del adjunto.
+- FR-48 a FR-54: Epic 10 - Periodos, demo, captura, formularios, Plan y movimiento.
+- FR-55 a FR-59: Epic 11 - Perfil, consentimiento, correo, biometría e identidad.
+- FR-60: Epic 10 - Journey de gamificación visible.
+- FR-61: Epic 10 - Reacción de controles interactivos.
+- FR-62: Epic 11 - Privacidad y seguridad de cuenta.
 
 ## Lista de epics
 
@@ -242,6 +266,18 @@ El usuario puede convertir acciones financieras y educativas verificables en un 
 El usuario puede consultar y reclamar beneficios reales de comercios aliados cuando existan acuerdos verificados, con condiciones transparentes, trazabilidad y controles contra duplicación o fraude.
 
 **FR cubiertos:** FR-45.
+
+### Epic 10: Experiencia financiera completa y expresiva
+
+El usuario entiende y controla sus finanzas desde una interfaz consistente, accesible, animada con moderación y sin controles ambiguos.
+
+**FR cubiertos:** FR-48, FR-49, FR-50, FR-51, FR-52, FR-53, FR-54, FR-60, FR-61.
+
+### Epic 11: Identidad, cuenta y confianza
+
+El usuario reconoce una identidad consistente y administra acceso, preferencias, consentimiento y seguridad.
+
+**FR cubiertos:** FR-55, FR-56, FR-57, FR-58, FR-59, FR-62.
 
 ## Epic 1: Fundación y acceso personal
 
@@ -1320,3 +1356,159 @@ para verificar qué gané, reclamé, utilicé, venció o fue revertido.
 **cuando** el usuario solicita ayuda
 **entonces** puede compartir una referencia sin exponer secretos ni datos financieros innecesarios
 **y** una reversión conserva el historial auditable.
+
+## Epic 10: Experiencia financiera completa y expresiva
+
+El usuario entiende y controla sus finanzas desde una interfaz consistente, accesible, animada con moderación y sin controles decorativos o ambiguos.
+
+### Story 10.1: Completar la experiencia demo y presupuestos
+
+**Requisitos:** FR-49, FR-53, NFR-18.
+
+Como evaluador, quiero datos demo variados y presupuestos visibles, para recorrer Plan e Inicio sin configuración manual.
+
+**Criterios de aceptación:**
+
+**Dado** el usuario demo **cuando** inicia sesión después del seed **entonces** ve varios meses de ingresos, gastos y presupuestos por Comida, Ocio, Transporte y categorías adicionales **y** existen estados saludables, cercanos al límite y excedidos.
+
+**Dado** que el seed se ejecuta otra vez **cuando** finaliza **entonces** conserva identificadores estables y no duplica datos.
+
+### Story 10.2: Corregir captura visual y OCR de recibos
+
+**Requisitos:** FR-46, FR-47, FR-50, FR-51, FR-52, NFR-16, NFR-18.
+
+Como usuario, quiero ver la imagen del recibo y obtener datos editables, para guardar un gasto con OCR o completarlo manualmente.
+
+**Criterios de aceptación:**
+
+**Dado** una imagen JPEG o PNG válida **cuando** se selecciona **entonces** aparece una previsualización removible **y** Importe, Fecha, Comercio y Categoría muestran etiquetas, ejemplos y errores.
+
+**Dado** que se solicita lectura **cuando** OCR encuentra texto **entonces** propone valores con confianza sin confirmar el gasto automáticamente.
+
+**Dado** OCR ausente o fallido **cuando** termina **entonces** la imagen permanece disponible y el formulario manual sigue funcionando.
+
+**Dado** un gasto confirmado con imagen **cuando** la API lo guarda **entonces** persiste bytes binarios privados asociados al propietario, no base64, **y** permite leer o eliminar el adjunto con autorización.
+
+### Story 10.3: Estandarizar formularios y espaciado
+
+**Requisitos:** FR-52, FR-61, NFR-18.
+
+Como usuario, quiero controles claros y separaciones consistentes, para completar tareas sin adivinar el propósito de un campo.
+
+**Criterios de aceptación:**
+
+**Dado** cualquier formulario **cuando** muestra un input, selector o checkbox **entonces** tiene etiqueta visible, placeholder útil, ayuda cuando aplica y error asociado **y** el teclado no cubre el control activo ni la acción principal.
+
+**Dado** Movimientos y las demás listas **cuando** se renderizan **entonces** respetan safe areas, escala común de padding y blancos consistentes.
+
+### Story 10.4: Hacer Plan completamente interactivo
+
+**Requisitos:** FR-53, FR-61, NFR-18.
+
+Como usuario, quiero administrar cada parte de mi plan, para cambiar ingresos, salario, presupuestos y metas desde una sola superficie.
+
+**Criterios de aceptación:**
+
+**Dado** Plan **cuando** se expande una sección **entonces** un acordeón muestra resumen y controles reales de crear, editar, pausar o eliminar según corresponda.
+
+**Dado** un importe ajustable **cuando** se usa slider o campo numérico **entonces** ambos permanecen sincronizados, accesibles y validados.
+
+**Dado** cualquier botón visible **cuando** se pulsa **entonces** produce navegación, cambio de estado, confirmación, error o explicación perceptible.
+
+### Story 10.5: Añadir periodos y movimiento de interfaz
+
+**Requisitos:** FR-48, FR-54, FR-61, NFR-17, NFR-18.
+
+Como usuario, quiero alternar Día, Semana y Mes con transiciones útiles, para comprender cómo cambia mi situación sin perder contexto.
+
+**Criterios de aceptación:**
+
+**Dado** Inicio **cuando** se selecciona Día, Semana o Mes **entonces** resumen, categorías y movimientos presentan exactamente ese periodo **y** el selector anuncia selección y carga.
+
+**Dado** navegación, scroll, acordeones o cambios de datos **cuando** ocurre una transición **entonces** usa animaciones breves que explican continuidad y no bloquean interacción.
+
+**Dado** reducción de movimiento activa **cuando** se usa la app **entonces** las transformaciones se sustituyen por cambios discretos sin perder información.
+
+### Story 10.6: Exponer gamificación como journey
+
+**Requisitos:** FR-60, FR-34 a FR-44, NFR-9 a NFR-15.
+
+Como usuario, quiero ver claramente mi siguiente reto y progreso, para saber qué acción financiera útil tomar hoy.
+
+**Criterios de aceptación:**
+
+**Dado** un usuario con progreso **cuando** abre Inicio **entonces** ve siguiente reto, motivo, progreso y recompensa junto con nivel, XP y racha **y** distingue puntos virtuales de dinero real.
+
+**Dado** que el backend motivacional no está habilitado **cuando** se muestra una superficie futura **entonces** usa un estado demo o “Próximamente” inequívoco y no simula rewards reclamables.
+
+## Epic 11: Identidad, cuenta y confianza
+
+El usuario reconoce una identidad consistente y administra acceso, preferencias, consentimiento y seguridad con controles comprensibles.
+
+### Story 11.1: Unificar splash, wordmark e iconos
+
+**Requisitos:** FR-59, NFR-18.
+
+Como usuario, quiero reconocer SmartAnt antes y después de abrir la app, para confiar en que splash, icono y producto pertenecen a la misma identidad.
+
+**Criterios de aceptación:**
+
+**Dado** los activos aprobados **cuando** se genera Android **entonces** splash, icono adaptativo, miniatura, favicon y wordmark usan la misma geometría SMA/SmartAnt, proporciones y dos tonos **y** no quedan activos de Expo.
+
+**Dado** diferentes máscaras Android **cuando** el launcher recorta el icono **entonces** el símbolo conserva zona segura y legibilidad.
+
+### Story 11.2: Ampliar perfil y preferencias
+
+**Requisitos:** FR-55, FR-62, NFR-18.
+
+Como usuario, quiero administrar identidad y preferencias, para adaptar SmartAnt sin editar valores técnicos.
+
+**Criterios de aceptación:**
+
+**Dado** Perfil **cuando** se consulta **entonces** agrupa datos personales, localización, moneda, notificaciones, gamificación, seguridad, privacidad y soporte.
+
+**Dado** Moneda **cuando** se modifica **entonces** usa un selector de opciones soportadas y nunca un input libre.
+
+**Dado** una acción sensible o no implementada **cuando** se pulsa **entonces** solicita confirmación o comunica disponibilidad; nunca queda inerte.
+
+### Story 11.3: Publicar y aceptar documentos legales
+
+**Requisitos:** FR-56, FR-62, NFR-19.
+
+Como usuario, quiero leer y aceptar los documentos aplicables, para conocer cómo funciona el servicio y cómo trata mis datos.
+
+**Criterios de aceptación:**
+
+**Dado** el registro **cuando** no se aceptan Términos y Privacidad mediante checkbox no preseleccionado **entonces** no se crea la cuenta y ambos documentos se pueden abrir.
+
+**Dado** una aceptación válida **cuando** se registra **entonces** conserva versión y fecha del consentimiento de forma auditable.
+
+**Dado** Perfil **cuando** se abre Legal y privacidad **entonces** muestra los textos y controles vigentes **y** los borradores indican revisión legal pendiente antes de producción.
+
+### Story 11.4: Confirmar correo de cuentas nuevas
+
+**Requisitos:** FR-57, NFR-20.
+
+Como usuario, quiero confirmar que controlo mi correo, para proteger mi cuenta y recuperar acceso con seguridad.
+
+**Criterios de aceptación:**
+
+**Dado** un registro válido **cuando** se crea la cuenta **entonces** envía un enlace de un solo uso con expiración y muestra estado pendiente.
+
+**Dado** un enlace válido, usado o vencido **cuando** se abre **entonces** confirma una sola vez o permite solicitar otro sin enumerar cuentas.
+
+**Dado** que no hay proveedor de correo **cuando** inicia producción **entonces** falla explícitamente o deshabilita registro; nunca finge el envío.
+
+### Story 11.5: Activar desbloqueo biométrico opcional
+
+**Requisitos:** FR-58, NFR-18.
+
+Como usuario, quiero desbloquear una sesión existente con biometría, para entrar con menos fricción sin reemplazar credenciales del servidor.
+
+**Criterios de aceptación:**
+
+**Dado** dispositivo compatible y sesión válida **cuando** se activa biometría explícitamente **entonces** el secreto queda en almacenamiento seguro y cada desbloqueo solicita autenticación local.
+
+**Dado** biometría cancelada, bloqueada o no disponible **cuando** se intenta entrar **entonces** ofrece credenciales normales sin bloquear la cuenta.
+
+**Dado** cerrar sesión **cuando** termina **entonces** revoca la sesión remota y elimina el acceso biométrico local.
