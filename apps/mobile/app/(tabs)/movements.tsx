@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -27,6 +28,7 @@ import { colors, fonts, radii, spacing } from "@/shared/theme";
 const pageSize = 20;
 
 export default function MovementsScreen() {
+  const params = useLocalSearchParams<{ category?: string; type?: string }>();
   const queryClient = useQueryClient();
   const [offset, setOffset] = useState(0);
   const [type, setType] = useState<MovementType | undefined>();
@@ -42,6 +44,16 @@ export default function MovementsScreen() {
     category: "",
   });
   const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    setOffset(0);
+    setCategory(typeof params.category === "string" ? params.category : "");
+    setType(
+      params.type === "INCOME" || params.type === "EXPENSE"
+        ? params.type
+        : undefined,
+    );
+  }, [params.category, params.type]);
   const history = useQuery({
     queryKey: ["history", offset, type, category, from, to],
     queryFn: async () => {
@@ -93,6 +105,24 @@ export default function MovementsScreen() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["history"] }),
   });
+
+  function beginEditing(movement: {
+    id: string;
+    type: MovementType;
+    amountMinor: string;
+    date: string;
+    description: string;
+    category?: string | null;
+  }) {
+    setEditingId(movement.id);
+    setEditingType(movement.type);
+    setDraft({
+      amountMinor: movement.amountMinor,
+      date: movement.date,
+      description: movement.description,
+      category: movement.category ?? "",
+    });
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
@@ -214,26 +244,22 @@ export default function MovementsScreen() {
             </View>
           ) : (
             <>
-              <View style={styles.movement}>
+              <Pressable
+                accessibilityHint="Abre el detalle editable"
+                accessibilityRole="button"
+                onPress={() => beginEditing(movement)}
+                style={styles.movement}
+              >
                 <Text style={styles.description}>{movement.description}</Text>
                 <Text>
                   {movement.type} / {movement.date} / {movement.amountMinor}
                 </Text>
                 {movement.category ? <Text>{movement.category}</Text> : null}
-              </View>
+              </Pressable>
               <View style={styles.actions}>
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => {
-                    setEditingId(movement.id);
-                    setEditingType(movement.type);
-                    setDraft({
-                      amountMinor: movement.amountMinor,
-                      date: movement.date,
-                      description: movement.description,
-                      category: movement.category ?? "",
-                    });
-                  }}
+                  onPress={() => beginEditing(movement)}
                   style={styles.saveButton}
                 >
                   <Text style={styles.saveText}>Editar</Text>

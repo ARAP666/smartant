@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
 import {
   Flame,
   PiggyBank,
@@ -6,8 +7,18 @@ import {
   Sprout,
   Target,
 } from "lucide-react-native";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  AccessibilityInfo,
+  Alert,
+  Animated,
+  Easing,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import type { SummaryPeriod } from "@/features/summary/summary-schema";
 import {
   fetchExpenseCategories,
@@ -27,6 +38,7 @@ let sessionPeriod: SummaryPeriod = "MONTHLY";
 
 export default function HomeScreen() {
   const [period, setPeriod] = useState<SummaryPeriod>(sessionPeriod);
+  const chartProgress = useRef(new Animated.Value(0)).current;
   const summary = useQuery({
     queryKey: ["financial-summary", period],
     queryFn: async () => {
@@ -49,6 +61,22 @@ export default function HomeScreen() {
     : 0;
   const incomeWidth =
     data && totalFlow > 0 ? Number(data.incomeTotal) / totalFlow : 0;
+  const chartAnimationKey = `${period}:${data?.incomeTotal ?? ""}:${data?.expenseTotal ?? ""}`;
+
+  useEffect(() => {
+    if (!chartAnimationKey) return;
+    AccessibilityInfo.isReduceMotionEnabled().then((reduceMotion) => {
+      chartProgress.setValue(reduceMotion ? 1 : 0);
+      if (!reduceMotion) {
+        Animated.timing(chartProgress, {
+          duration: 650,
+          easing: Easing.out(Easing.cubic),
+          toValue: 1,
+          useNativeDriver: true,
+        }).start();
+      }
+    });
+  }, [chartAnimationKey, chartProgress]);
 
   function selectPeriod(nextPeriod: SummaryPeriod) {
     sessionPeriod = nextPeriod;
@@ -143,57 +171,92 @@ export default function HomeScreen() {
               {formatMoney(data.spendableBalance)}
             </Text>
             <View style={styles.flowRow}>
-              <View>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() =>
+                  router.push({
+                    pathname: "/movements",
+                    params: { type: "INCOME" },
+                  })
+                }
+              >
                 <Text style={styles.flowLabel}>Ingresos</Text>
                 <Text style={styles.flowValue}>
                   {formatMoney(data.incomeTotal)}
                 </Text>
-              </View>
-              <View>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() =>
+                  router.push({
+                    pathname: "/movements",
+                    params: { type: "EXPENSE" },
+                  })
+                }
+              >
                 <Text style={styles.flowLabel}>Gastos</Text>
                 <Text style={styles.flowValue}>
                   {formatMoney(data.expenseTotal)}
                 </Text>
-              </View>
+              </Pressable>
             </View>
             {totalFlow > 0 ? (
-              <View style={styles.chart}>
+              <Animated.View
+                style={[
+                  styles.chart,
+                  { transform: [{ scaleX: chartProgress }] },
+                ]}
+              >
                 <View style={[styles.chartIncome, { flex: incomeWidth }]} />
                 <View
                   style={[styles.chartExpense, { flex: 1 - incomeWidth }]}
                 />
-              </View>
+              </Animated.View>
             ) : null}
           </View>
-          <Card>
-            <View style={styles.rewardRow}>
-              <IconChip Icon={Flame} tone="honey" />
-              <View style={styles.rewardText}>
-                <Text style={styles.cardTitle}>
-                  Nivel 1 · Primer hormiguero
-                </Text>
-                <Text style={styles.muted}>120 / 250 XP · racha de 3 días</Text>
-                <View style={styles.xpTrack}>
-                  <View style={styles.xpFill} />
+          <Pressable
+            accessibilityRole="button"
+            onPress={() =>
+              Alert.alert(
+                "Journey financiero",
+                "Los retos completos se habilitarán en la siguiente entrega.",
+              )
+            }
+          >
+            <Card>
+              <View style={styles.rewardRow}>
+                <IconChip Icon={Flame} tone="honey" />
+                <View style={styles.rewardText}>
+                  <Text style={styles.cardTitle}>
+                    Nivel 1 · Primer hormiguero
+                  </Text>
+                  <Text style={styles.muted}>
+                    120 / 250 XP · racha de 3 días
+                  </Text>
+                  <View style={styles.xpTrack}>
+                    <View style={styles.xpFill} />
+                  </View>
+                  <Text style={styles.challenge}>
+                    Siguiente reto demo: registrá tus gastos de hoy
+                  </Text>
+                  <Text style={styles.muted}>
+                    +20 XP virtuales · Rewards reales próximamente
+                  </Text>
                 </View>
-                <Text style={styles.challenge}>
-                  Siguiente reto demo: registrá tus gastos de hoy
-                </Text>
-                <Text style={styles.muted}>
-                  +20 XP virtuales · Rewards reales próximamente
-                </Text>
               </View>
-            </View>
-          </Card>
+            </Card>
+          </Pressable>
           <View style={styles.metricGrid}>
             <Metric
               icon={PiggyBank}
               label="Meta de ahorro"
+              onPress={() => router.push("/plan")}
               value={formatMoney(data.savingsGoalTotal)}
             />
             <Metric
               icon={Target}
               label="Presupuesto"
+              onPress={() => router.push("/plan")}
               value={formatMoney(data.budgetTotal)}
             />
           </View>
@@ -203,12 +266,26 @@ export default function HomeScreen() {
           {categories.data?.categories.length ? (
             <View style={styles.categories}>
               {categories.data.categories.map((category) => (
-                <View key={category.category} style={styles.categoryRow}>
+                <Pressable
+                  accessibilityHint="Abre los gastos de esta categoría"
+                  accessibilityRole="button"
+                  key={category.category}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/movements",
+                      params: { category: category.category, type: "EXPENSE" },
+                    })
+                  }
+                  style={({ pressed }) => [
+                    styles.categoryRow,
+                    pressed && styles.pressed,
+                  ]}
+                >
                   <Text style={styles.metricLabel}>{category.category}</Text>
                   <Text style={styles.metricValue}>
                     {formatMoney(category.amountMinor)} · {category.percentage}%
                   </Text>
-                </View>
+                </Pressable>
               ))}
             </View>
           ) : null}
@@ -222,17 +299,23 @@ function Metric({
   icon: Icon,
   label,
   value,
+  onPress,
 }: {
   icon: typeof PiggyBank;
   label: string;
   value: string;
+  onPress: () => void;
 }) {
   return (
-    <View style={styles.metric}>
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={styles.metric}
+    >
       <Icon color={colors.forest} size={16} />
       <Text style={styles.metricLabel}>{label}</Text>
       <Text style={styles.metricValue}>{value}</Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -311,6 +394,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyMedium,
     fontSize: 12,
   },
+  pressed: { opacity: 0.7, transform: [{ scale: 0.99 }] },
   refresh: {
     alignItems: "center",
     backgroundColor: colors.surface,

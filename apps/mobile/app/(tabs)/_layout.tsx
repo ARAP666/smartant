@@ -14,7 +14,7 @@ import {
   loadCurrentSession,
   SESSION_QUERY_KEY,
 } from "@/shared/auth/current-session";
-import { colors, fonts, radii } from "@/shared/theme";
+import { colors, radii } from "@/shared/theme";
 
 const icons: Record<(typeof tabs)[number]["icon"], LucideIcon> = {
   Chart: ChartNoAxesColumn,
@@ -41,7 +41,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.forestStrong,
         tabBarInactiveTintColor: colors.inkFaint,
-        tabBarLabelStyle: styles.label,
+        tabBarShowLabel: false,
         tabBarStyle: styles.bar,
       }}
     >
@@ -85,9 +85,8 @@ const styles = StyleSheet.create({
   bar: {
     backgroundColor: colors.surface,
     borderTopColor: colors.border,
-    height: 76,
+    height: 68,
     paddingBottom: 8,
     paddingTop: 10,
   },
-  label: { fontFamily: fonts.bodyMedium, fontSize: 11 },
 });
