@@ -18,6 +18,245 @@ La arquitectura de navegación actual tiene cinco áreas persistentes:
 
 Antes de ingresar existen las pantallas de inicio de sesión y registro, además de una pantalla breve de arranque.
 
+## Alcance funcional completo
+
+Este inventario es el contexto funcional que el futuro design system debe poder representar. Los elementos marcados como **actuales** existen en el producto; los marcados como **futuros** deben contemplarse visualmente sin asumir que ya tienen implementación.
+
+### Acceso y cuenta — actual
+
+- pantalla de arranque;
+- registro con correo y contraseña;
+- inicio de sesión y errores de credenciales;
+- restauración de sesión;
+- cierre de sesión;
+- perfil con correo, moneda ISO y zona horaria IANA;
+- estados de carga, sesión expirada, error de red y validación por campo.
+
+### Inicio financiero — actual
+
+- selector de periodo: semana, mes y año;
+- balance total;
+- total de ingresos y gastos;
+- comparación visual entre ingresos y gastos;
+- distribución de gastos por categoría;
+- resumen del rango de fechas y zona horaria aplicados;
+- refrescar datos;
+- estados sin movimientos, cargando, error y datos parciales.
+
+### Movimientos — actual
+
+- historial unificado de ingresos y gastos;
+- filtros por fecha inicial, fecha final, categoría y tipo;
+- paginación;
+- identificación visual del tipo de movimiento;
+- descripción, fecha, categoría y monto;
+- edición y eliminación;
+- acciones destructivas y confirmación;
+- estados vacíos, sin resultados, cargando más y error.
+
+### Añadir y capturar — actual
+
+- ingreso manual;
+- gasto manual en estado pendiente;
+- evaluación del gasto antes de confirmarlo;
+- revisión y corrección de monto, fecha, descripción y categoría;
+- advertencia financiera antes de aceptar cuando corresponda;
+- confirmación idempotente para evitar duplicados;
+- fotografía o selección de recibo;
+- detección de datos desde recibo y revisión posterior;
+- importación CSV;
+- mapeo de columnas de fecha, monto, descripción y categoría;
+- preview de filas válidas, inválidas y duplicadas;
+- selección y confirmación de importación;
+- resumen de creados, omitidos y fallidos.
+
+### Plan financiero — actual
+
+- configuración de salario con monto, frecuencia semanal o mensual y próxima fecha;
+- generar el siguiente ingreso salarial;
+- pausar, reanudar, editar y eliminar salario;
+- presupuestos generales o por categoría, periodo y estado activo;
+- crear, editar y eliminar presupuestos;
+- metas de ahorro por monto, periodo y estado activo;
+- crear, editar y eliminar metas;
+- estados cuando todavía no existe salario, presupuesto o meta.
+
+### Rewards y progreso — futuro requerido por el brief
+
+Rewards no existe todavía en el código ni tiene contrato definitivo de backend. El design system sí debe reservar un lenguaje coherente para incorporarlo sin rediseñar la aplicación.
+
+Debe poder expresar:
+
+- puntos o progreso acumulado;
+- nivel financiero;
+- racha de hábitos;
+- logro bloqueado, disponible, en progreso y completado;
+- recompensa reclamada o pendiente de reclamar;
+- progreso numérico y porcentual hacia una meta;
+- hitos por registrar movimientos, respetar presupuestos, ahorrar o mantener actividad;
+- celebración no invasiva al completar un logro;
+- historial de recompensas;
+- explicación transparente de por qué se obtuvo o perdió progreso;
+- accesibilidad de insignias y celebraciones sin depender de color o animación.
+
+Modelo conceptual mínimo para diseñar esta feature — sujeto a validación antes de implementarlo:
+
+```ts
+type Reward = {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  status: "LOCKED" | "IN_PROGRESS" | "AVAILABLE" | "CLAIMED";
+  progress: number;
+  target: number;
+  points: number;
+  earnedAt: string | null;
+  claimedAt: string | null;
+};
+
+type RewardProfile = {
+  points: number;
+  level: number;
+  streakDays: number;
+  nextLevelAt: number;
+};
+```
+
+El diseñador puede cuestionar la forma visual de rewards, pero no debe inventar reglas económicas, premios monetarios ni mecánicas manipulativas.
+
+## Datos que maneja la interfaz
+
+Los montos viajan como enteros en unidad mínima representados por `string` —por ejemplo, céntimos— y se formatean según la moneda del perfil. Nunca deben tratarse visualmente como texto genérico ni perder signo, moneda o escala.
+
+### Entidades actuales
+
+| Entidad | Datos visibles o relevantes |
+|---|---|
+| Usuario | `id`, correo, moneda, zona horaria |
+| Sesión | usuario autenticado, expiración y estado revocado |
+| Ingreso | `id`, monto, fecha, descripción |
+| Gasto | `id`, monto, fecha, descripción, categoría |
+| Movimiento pendiente | monto, fecha, descripción, categoría, estado y evaluación |
+| Salario | monto, frecuencia, próxima fecha, pausado/activo |
+| Presupuesto | monto, periodo, categoría opcional, activo/inactivo |
+| Meta de ahorro | monto, periodo, activa/inactiva |
+| Resumen | periodo, rango, zona horaria, ingresos, gastos y balance |
+| Categoría de gasto | nombre, monto total y proporción del total |
+| Importación | fila, valores mapeados, estado, motivo y posible duplicado |
+| Recibo | imagen local, datos detectados y resultado de revisión |
+
+### Estados semánticos de datos
+
+Todo componente de datos debe contemplar:
+
+- desconocido o todavía no cargado;
+- cargando inicial y actualizando sin borrar información previa;
+- vacío legítimo;
+- éxito;
+- advertencia que permite continuar conscientemente;
+- error de validación local;
+- error de API recuperable;
+- error bloqueante;
+- elemento pendiente de confirmación;
+- elemento confirmado;
+- elemento duplicado u omitido;
+- activo, pausado e inactivo;
+- acción en progreso y protección contra doble envío.
+
+## Inventario de componentes que el sistema debe cubrir
+
+### Fundaciones y primitives
+
+- texto semántico: display, título, sección, cuerpo, label, caption, monto y dato tabular;
+- icono con label accesible;
+- superficie, tarjeta, divisor y contenedor de sección;
+- stack vertical, fila, grid y espaciador;
+- safe-area screen, scroll screen y keyboard-safe form screen;
+- skeleton, spinner y progress indicator.
+
+### Navegación
+
+- splash;
+- barra inferior de cinco destinos con icono, label, seleccionado y badge;
+- encabezado de pantalla y encabezado de sección;
+- back action;
+- enlace inline;
+- tabs o segmentos internos;
+- modal, bottom sheet y diálogo de confirmación cuando el patrón lo requiera.
+
+### Acciones
+
+- botón primario, secundario, terciario, icon-only y destructivo;
+- botón flotante o acción prominente para captura, si la propuesta lo justifica;
+- estados normal, pressed, focused, disabled y loading;
+- menu de acciones y swipe action, si se proponen para movimientos.
+
+### Formularios
+
+- text field, password field, money field, date field y search field;
+- selector de categoría, moneda, zona horaria, frecuencia y periodo;
+- checkbox, radio, switch y segmented control;
+- upload/select de archivo e imagen;
+- label, helper text, error text y contador;
+- formulario con acciones visibles mientras aparece el teclado;
+- revisión editable de datos detectados o importados.
+
+### Finanzas y visualización de datos
+
+- money value con variantes positiva, negativa y neutral;
+- balance hero;
+- metric card;
+- income/expense comparison;
+- category distribution y leyenda;
+- budget progress;
+- savings goal progress;
+- salary summary;
+- movement row;
+- pending movement review;
+- date range y period selector;
+- filtros activos como chips removibles.
+
+### Feedback y estados
+
+- inline validation;
+- banner de información, éxito, advertencia y error;
+- toast o snackbar para confirmación breve;
+- empty state contextual;
+- error state con retry;
+- loading y stale-data state;
+- confirmación destructiva;
+- resultado de importación;
+- celebración accesible de reward o meta.
+
+### Rewards — futuro
+
+- reward profile summary;
+- points y level indicator;
+- streak indicator;
+- reward/achievement card;
+- badge bloqueado, en progreso, disponible y reclamado;
+- progress track;
+- reward detail;
+- claim action;
+- reward history row;
+- celebration overlay con alternativa sin movimiento.
+
+## Matriz pantalla–componentes
+
+| Pantalla/flujo | Componentes esenciales |
+|---|---|
+| Splash | marca, loading/progreso |
+| Login/registro | keyboard-safe screen, fields, primary button, link, inline errors |
+| Inicio | period selector, balance hero, metric cards, comparación, categorías, estados |
+| Movimientos | filtros, chips, movement rows, paginación, edit/delete actions |
+| Añadir manual | selector de tipo, money/date/text/category fields, evaluación, confirmación |
+| Recibo | image picker, preview, loading de detección, review form, confirmación |
+| Importación | file picker, column mapping, tabla/lista de preview, estados por fila, resumen |
+| Plan | salary summary/form, budget cards/forms, goal cards/forms, progress |
+| Perfil | datos de cuenta, selectors, guardar, cerrar sesión |
+| Rewards futuro | profile summary, achievements, progreso, detalle, claim, historial |
+
 ## Cómo está implementada hoy
 
 - Expo SDK 56, React Native y Expo Router.
