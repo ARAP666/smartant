@@ -74,6 +74,22 @@ export default function HomeScreen() {
       <View style={styles.segments}>
         <Pressable
           accessibilityRole="button"
+          accessibilityState={{ selected: period === "DAILY" }}
+          onPress={() => selectPeriod("DAILY")}
+          style={[styles.segment, period === "DAILY" && styles.segmentActive]}
+        >
+          <Text
+            style={[
+              styles.segmentText,
+              period === "DAILY" && styles.segmentTextActive,
+            ]}
+          >
+            Día
+          </Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ selected: period === "WEEKLY" }}
           onPress={() => selectPeriod("WEEKLY")}
           style={[styles.segment, period === "WEEKLY" && styles.segmentActive]}
         >
@@ -88,6 +104,7 @@ export default function HomeScreen() {
         </Pressable>
         <Pressable
           accessibilityRole="button"
+          accessibilityState={{ selected: period === "MONTHLY" }}
           onPress={() => selectPeriod("MONTHLY")}
           style={[styles.segment, period === "MONTHLY" && styles.segmentActive]}
         >
@@ -152,9 +169,18 @@ export default function HomeScreen() {
             <View style={styles.rewardRow}>
               <IconChip Icon={Flame} tone="honey" />
               <View style={styles.rewardText}>
-                <Text style={styles.cardTitle}>Tu progreso</Text>
+                <Text style={styles.cardTitle}>
+                  Nivel 1 · Primer hormiguero
+                </Text>
+                <Text style={styles.muted}>120 / 250 XP · racha de 3 días</Text>
+                <View style={styles.xpTrack}>
+                  <View style={styles.xpFill} />
+                </View>
+                <Text style={styles.challenge}>
+                  Siguiente reto demo: registrá tus gastos de hoy
+                </Text>
                 <Text style={styles.muted}>
-                  Retos y recompensas · Próximamente
+                  +20 XP virtuales · Rewards reales próximamente
                 </Text>
               </View>
             </View>
@@ -224,6 +250,11 @@ const styles = StyleSheet.create({
   },
   balanceValue: { color: colors.white, fontFamily: fonts.amount, fontSize: 32 },
   cardTitle: { color: colors.ink, fontFamily: fonts.bodyBold, fontSize: 16 },
+  challenge: {
+    color: colors.forestStrong,
+    fontFamily: fonts.bodyBold,
+    marginTop: spacing[1],
+  },
   empty: { alignItems: "center", gap: spacing[3] },
   error: { color: colors.red, fontFamily: fonts.bodyMedium },
   chart: {
@@ -292,6 +323,19 @@ const styles = StyleSheet.create({
   },
   rewardRow: { alignItems: "center", flexDirection: "row", gap: spacing[4] },
   rewardText: { flex: 1, gap: spacing[1] },
+  xpFill: {
+    backgroundColor: colors.honey,
+    borderRadius: radii.full,
+    height: "100%",
+    width: "48%",
+  },
+  xpTrack: {
+    backgroundColor: colors.honeySoft,
+    borderRadius: radii.full,
+    height: 8,
+    marginVertical: spacing[1],
+    overflow: "hidden",
+  },
   segment: {
     alignItems: "center",
     borderRadius: radii.full,

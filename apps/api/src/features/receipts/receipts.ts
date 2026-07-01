@@ -1,3 +1,4 @@
+import { recognize } from "tesseract.js";
 import { z } from "zod";
 import type { PrismaClient } from "../../generated/prisma/client.js";
 import { AppError } from "../../shared/errors.js";
@@ -14,6 +15,11 @@ export const receiptDetectionSchema = z.object({
 });
 
 export type ReceiptDetectionInput = z.infer<typeof receiptDetectionSchema>;
+
+export async function extractReceiptText(data: Buffer) {
+  const result = await recognize(data, "spa+eng");
+  return result.data.text.slice(0, 4000);
+}
 
 type ReceiptAttachmentInput = {
   originalName: string;

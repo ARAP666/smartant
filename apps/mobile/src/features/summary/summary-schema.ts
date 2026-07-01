@@ -1,4 +1,4 @@
-export type SummaryPeriod = "WEEKLY" | "MONTHLY";
+export type SummaryPeriod = "DAILY" | "WEEKLY" | "MONTHLY";
 
 export type FinancialSummary = {
   period: { kind: SummaryPeriod; start: string; end: string; timeZone: string };

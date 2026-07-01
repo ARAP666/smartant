@@ -3,11 +3,12 @@ import {
   AccessibilityInfo,
   Animated,
   Easing,
+  Image,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { colors, fonts, radii } from "@/shared/theme";
+import { colors, fonts } from "@/shared/theme";
 import { SmartAntWordmark } from "./SmartAntWordmark";
 import { getSplashDuration } from "./splash-motion";
 
@@ -59,9 +60,11 @@ export function AppSplash({ onDone }: AppSplashProps) {
   return (
     <View style={styles.container}>
       <Animated.View style={{ opacity }}>
-        <View style={styles.mark}>
-          <SmartAntWordmark compact />
-        </View>
+        <Image
+          accessibilityLabel="Logo de SmartAnt"
+          source={require("../../../assets/smartant-mark.png")}
+          style={styles.mark}
+        />
         <SmartAntWordmark />
         <Text style={styles.tagline}>Pequeños pasos, gran progreso</Text>
       </Animated.View>
@@ -77,14 +80,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   mark: {
-    alignItems: "center",
     alignSelf: "center",
-    backgroundColor: colors.forest,
-    borderRadius: radii.xl,
-    height: 104,
-    justifyContent: "center",
+    height: 180,
     marginBottom: 24,
-    width: 104,
+    width: 180,
   },
   tagline: {
     color: colors.inkMuted,

@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as LocalAuthentication from "expo-local-authentication";
 import { router } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import { Coins, Globe2, User } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
@@ -26,6 +28,8 @@ export default function ProfileScreen() {
   const [currency, setCurrency] = useState("CRC");
   const [timeZone, setTimeZone] = useState("America/Costa_Rica");
   const [formError, setFormError] = useState("");
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [biometricMessage, setBiometricMessage] = useState("");
   const profile = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
@@ -70,6 +74,29 @@ export default function ProfileScreen() {
 
   const disabled = save.isPending || profile.isPending;
 
+  async function enableBiometrics() {
+    if (!(await LocalAuthentication.hasHardwareAsync())) {
+      setBiometricMessage("Este dispositivo no tiene biometría disponible.");
+      return;
+    }
+    if (!(await LocalAuthentication.isEnrolledAsync())) {
+      setBiometricMessage(
+        "Primero configurá huella o rostro en el dispositivo.",
+      );
+      return;
+    }
+    const result = await LocalAuthentication.authenticateAsync({
+      biometricsSecurityLevel: "strong",
+      promptMessage: "Activar acceso biométrico",
+    });
+    if (!result.success) {
+      setBiometricMessage("No se activó la biometría.");
+      return;
+    }
+    await SecureStore.setItemAsync("smartant.biometric-enabled", "true");
+    setBiometricMessage("Acceso biométrico activado en este dispositivo.");
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.screen}>
       <ScreenTitle eyebrow="Cuenta" title="Perfil" />
@@ -88,16 +115,34 @@ export default function ProfileScreen() {
         <Coins color={colors.blue} size={18} />
         <Text style={styles.label}>Moneda</Text>
       </View>
-      <Text style={styles.label}>Moneda</Text>
-      <TextInput
-        accessibilityLabel="Moneda"
-        autoCapitalize="characters"
-        editable={!disabled}
-        maxLength={3}
-        onChangeText={setCurrency}
+      <Pressable
+        accessibilityLabel={`Moneda seleccionada: ${currency}`}
+        accessibilityRole="button"
+        onPress={() => setCurrencyOpen((open) => !open)}
         style={styles.input}
-        value={currency}
-      />
+      >
+        <Text style={styles.inputText}>
+          {currency} ·{" "}
+          {currency === "CRC" ? "Colón costarricense" : "Dólar estadounidense"}
+        </Text>
+      </Pressable>
+      {currencyOpen ? (
+        <View accessibilityRole="menu" style={styles.menu}>
+          {(["CRC", "USD"] as const).map((option) => (
+            <Pressable
+              accessibilityRole="menuitem"
+              key={option}
+              onPress={() => {
+                setCurrency(option);
+                setCurrencyOpen(false);
+              }}
+              style={styles.menuItem}
+            >
+              <Text style={styles.inputText}>{option}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
       <View style={styles.labelRow}>
         <Globe2 color={colors.blue} size={18} />
         <Text style={styles.label}>Zona horaria</Text>
@@ -129,6 +174,39 @@ export default function ProfileScreen() {
         <Text style={styles.error}>{save.error.message}</Text>
       ) : null}
       {save.isSuccess && !formError ? <Text>Perfil guardado</Text> : null}
+      <Card>
+        <Text style={styles.profileName}>Seguridad</Text>
+        <Text style={styles.muted}>
+          Usá la biometría del dispositivo para proteger una sesión guardada.
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={enableBiometrics}
+          style={styles.outlineButton}
+        >
+          <Text style={styles.outlineText}>Activar biometría</Text>
+        </Pressable>
+        {biometricMessage ? (
+          <Text style={styles.muted}>{biometricMessage}</Text>
+        ) : null}
+      </Card>
+      <Card>
+        <Text style={styles.profileName}>Privacidad y legal</Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push("/legal/privacy" as never)}
+          style={styles.menuItem}
+        >
+          <Text style={styles.outlineText}>Política de privacidad</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push("/legal/terms" as never)}
+          style={styles.menuItem}
+        >
+          <Text style={styles.outlineText}>Términos de uso</Text>
+        </Pressable>
+      </Card>
       <Pressable
         accessibilityRole="button"
         disabled={logout.isPending}
@@ -167,9 +245,30 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: spacing[4],
   },
+  inputText: { color: colors.ink, fontFamily: fonts.body },
   label: { color: colors.ink, fontFamily: fonts.bodyBold },
   labelRow: { alignItems: "center", flexDirection: "row", gap: spacing[2] },
   muted: { color: colors.inkMuted, fontFamily: fonts.body },
+  menu: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    overflow: "hidden",
+  },
+  menuItem: {
+    minHeight: 48,
+    justifyContent: "center",
+    paddingHorizontal: spacing[4],
+  },
+  outlineButton: {
+    alignItems: "center",
+    borderColor: colors.forest,
+    borderRadius: radii.full,
+    borderWidth: 1.5,
+    justifyContent: "center",
+    minHeight: 48,
+    marginTop: spacing[3],
+  },
+  outlineText: { color: colors.forest, fontFamily: fonts.bodyBold },
   profileName: { color: colors.ink, fontFamily: fonts.bodyBold, fontSize: 18 },
   profileRow: { alignItems: "center", flexDirection: "row", gap: spacing[4] },
   profileText: { flex: 1, gap: spacing[1] },

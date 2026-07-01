@@ -318,6 +318,7 @@ export type HistoryHandlers = {
 };
 
 export type ReceiptHandlers = {
+  extractText: (data: Buffer) => Promise<string>;
   detectReceiptPendingMovement: (
     userId: string,
     input: ReceiptDetectionInput,
@@ -461,6 +462,7 @@ const unavailableHistory: HistoryHandlers = {
 };
 
 const unavailableReceipts: ReceiptHandlers = {
+  extractText: async () => "",
   detectReceiptPendingMovement: async () => {
     throw new AppError(500, "NOT_CONFIGURED", "Receipts unavailable");
   },
@@ -1049,7 +1051,7 @@ export function createApp(
           text:
             typeof request.body.text === "string"
               ? request.body.text
-              : undefined,
+              : await receiptHandlers.extractText(request.file.buffer),
         });
         if (!parsed.success) {
           sendError(response, validationError(parsed.error));

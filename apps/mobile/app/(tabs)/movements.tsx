@@ -336,10 +336,11 @@ const styles = StyleSheet.create({
   movement: { flex: 1, gap: 3 },
   row: {
     backgroundColor: colors.surface,
-    borderBottomColor: colors.border,
-    borderBottomWidth: 1,
-    gap: 8,
-    paddingVertical: 12,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    gap: spacing[3],
+    padding: spacing[4],
   },
   saveButton: {
     alignItems: "center",
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: colors.bg,
     flexGrow: 1,
-    gap: spacing[3],
+    gap: spacing[4],
     padding: spacing[5],
     paddingBottom: spacing[8],
   },

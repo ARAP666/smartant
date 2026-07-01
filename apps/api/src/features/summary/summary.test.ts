@@ -77,6 +77,30 @@ describe("getFinancialSummary", () => {
     });
   });
 
+  it("calculates daily bounds", async () => {
+    const database = {
+      $transaction: async (queries: unknown[]) => Promise.all(queries),
+      user: { findUnique: async () => ({ timeZone: "America/Costa_Rica" }) },
+      income: { findMany: async () => [] },
+      expense: { findMany: async () => [] },
+      budget: { findMany: async () => [] },
+      savingsGoal: { findMany: async () => [] },
+    };
+
+    await expect(
+      getFinancialSummary(
+        database as never,
+        "user-id",
+        "DAILY",
+        new Date("2026-07-01T18:00:00.000Z"),
+      ),
+    ).resolves.toMatchObject({
+      summary: {
+        period: { kind: "DAILY", start: "2026-07-01", end: "2026-07-01" },
+      },
+    });
+  });
+
   it("groups expenses by category", async () => {
     const database = {
       expense: {

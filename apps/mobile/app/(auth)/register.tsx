@@ -18,6 +18,7 @@ import { colors, fonts, radii, spacing } from "@/shared/theme";
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<
     Record<string, string[] | undefined>
   >({});
@@ -30,6 +31,12 @@ export default function RegisterScreen() {
   });
 
   const submit = () => {
+    if (!acceptedLegal) {
+      setFieldErrors({
+        legal: ["Aceptá los Términos y la Política de privacidad."],
+      });
+      return;
+    }
     const parsed = registerSchema.safeParse({ email, password });
     if (!parsed.success) {
       setFieldErrors(parsed.error.flatten().fieldErrors);
@@ -47,6 +54,7 @@ export default function RegisterScreen() {
         <Text style={styles.subtitle}>
           Empezá con una vista clara de tu dinero.
         </Text>
+        <Text style={styles.label}>Correo electrónico</Text>
         <TextInput
           accessibilityLabel="Correo"
           autoCapitalize="none"
@@ -61,6 +69,7 @@ export default function RegisterScreen() {
         {fieldErrors.email?.[0] ? (
           <Text style={styles.error}>{fieldErrors.email[0]}</Text>
         ) : null}
+        <Text style={styles.label}>Contraseña</Text>
         <TextInput
           accessibilityLabel="Contraseña"
           autoComplete="new-password"
@@ -73,6 +82,32 @@ export default function RegisterScreen() {
         />
         {fieldErrors.password?.[0] ? (
           <Text style={styles.error}>{fieldErrors.password[0]}</Text>
+        ) : null}
+        <Pressable
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: acceptedLegal }}
+          onPress={() => setAcceptedLegal((accepted) => !accepted)}
+          style={styles.checkboxRow}
+        >
+          <View
+            style={[styles.checkbox, acceptedLegal && styles.checkboxChecked]}
+          >
+            <Text style={styles.checkmark}>{acceptedLegal ? "✓" : ""}</Text>
+          </View>
+          <Text style={styles.checkboxText}>
+            Acepto los documentos indicados abajo.
+          </Text>
+        </Pressable>
+        <View style={styles.legalLinks}>
+          <Link href={"/legal/terms" as never} style={styles.link}>
+            Términos de uso
+          </Link>
+          <Link href={"/legal/privacy" as never} style={styles.link}>
+            Política de privacidad
+          </Link>
+        </View>
+        {fieldErrors.legal?.[0] ? (
+          <Text style={styles.error}>{fieldErrors.legal[0]}</Text>
         ) : null}
         <Pressable
           accessibilityRole="button"
@@ -111,6 +146,27 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   buttonText: { color: colors.white, fontFamily: fonts.bodyBold, fontSize: 16 },
+  checkbox: {
+    alignItems: "center",
+    borderColor: colors.borderStrong,
+    borderRadius: 6,
+    borderWidth: 2,
+    height: 24,
+    justifyContent: "center",
+    width: 24,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.forest,
+    borderColor: colors.forest,
+  },
+  checkboxRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing[3],
+    minHeight: 44,
+  },
+  checkboxText: { color: colors.ink, flex: 1, fontFamily: fonts.body },
+  checkmark: { color: colors.white, fontFamily: fonts.bodyBold },
   disabled: { opacity: 0.55 },
   error: { color: colors.red, fontFamily: fonts.bodyMedium },
   form: { gap: spacing[4], width: "100%" },
@@ -124,6 +180,8 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: spacing[4],
   },
+  label: { color: colors.ink, fontFamily: fonts.bodyBold },
+  legalLinks: { flexDirection: "row", flexWrap: "wrap", gap: spacing[4] },
   link: {
     color: colors.forestStrong,
     fontFamily: fonts.bodyBold,

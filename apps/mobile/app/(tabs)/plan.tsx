@@ -230,10 +230,13 @@ export default function PlanScreen() {
     <ScrollView contentContainerStyle={styles.screen}>
       <Text style={styles.title}>Plan</Text>
       <Text style={styles.label}>Salario recurrente</Text>
+      <Text style={styles.fieldLabel}>Monto del salario</Text>
       <TextInput
         accessibilityLabel="Monto menor"
         keyboardType="number-pad"
         onChangeText={setAmountMinor}
+        placeholder="Ej. 62000000"
+        placeholderTextColor={colors.inkFaint}
         style={styles.input}
         value={amountMinor}
       />
@@ -259,9 +262,12 @@ export default function PlanScreen() {
           <Text>Mensual</Text>
         </Pressable>
       </View>
+      <Text style={styles.fieldLabel}>Próxima fecha de pago</Text>
       <TextInput
         accessibilityLabel="Proxima fecha"
         onChangeText={setNextDate}
+        placeholder="AAAA-MM-DD"
+        placeholderTextColor={colors.inkFaint}
         style={styles.input}
         value={nextDate}
       />
@@ -316,10 +322,13 @@ export default function PlanScreen() {
         <Text style={styles.error}>{remove.error.message}</Text>
       ) : null}
       <Text style={styles.label}>Presupuesto</Text>
+      <Text style={styles.fieldLabel}>Monto máximo</Text>
       <TextInput
         accessibilityLabel="Monto presupuesto"
         keyboardType="number-pad"
         onChangeText={setBudgetAmount}
+        placeholder="Ej. 10000000"
+        placeholderTextColor={colors.inkFaint}
         style={styles.input}
         value={budgetAmount}
       />
@@ -345,10 +354,12 @@ export default function PlanScreen() {
           <Text>Mensual</Text>
         </Pressable>
       </View>
+      <Text style={styles.fieldLabel}>Categoría del presupuesto</Text>
       <TextInput
         accessibilityLabel="Categoria"
         onChangeText={setBudgetCategory}
         placeholder="General"
+        placeholderTextColor={colors.inkFaint}
         style={styles.input}
         value={budgetCategory}
       />
@@ -397,10 +408,13 @@ export default function PlanScreen() {
         <Text style={styles.error}>{saveBudget.error.message}</Text>
       ) : null}
       <Text style={styles.label}>Meta de ahorro</Text>
+      <Text style={styles.fieldLabel}>Monto que querés ahorrar</Text>
       <TextInput
         accessibilityLabel="Monto meta"
         keyboardType="number-pad"
         onChangeText={setGoalAmount}
+        placeholder="Ej. 30000000"
+        placeholderTextColor={colors.inkFaint}
         style={styles.input}
         value={goalAmount}
       />
@@ -506,6 +520,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
   },
   label: { color: colors.ink, fontFamily: fonts.bodyBold },
+  fieldLabel: { color: colors.inkMuted, fontFamily: fonts.bodyMedium },
   screen: {
     backgroundColor: colors.bg,
     flex: 1,

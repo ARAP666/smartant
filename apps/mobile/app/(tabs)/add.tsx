@@ -3,6 +3,7 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -447,9 +448,17 @@ export default function AddScreen() {
         </Pressable>
       </View>
       {receiptPhoto ? (
-        <Text>
-          Imagen adjunta lista. Podés usar OCR o llenar el gasto manualmente.
-        </Text>
+        <View style={styles.receiptPreviewCard}>
+          <Image
+            accessibilityLabel="Vista previa del recibo seleccionado"
+            resizeMode="cover"
+            source={{ uri: receiptPhoto.uri }}
+            style={styles.receiptPreview}
+          />
+          <Text style={styles.helper}>
+            Podés leer sus datos o completar el gasto manualmente.
+          </Text>
+        </View>
       ) : null}
       {receiptPhoto ? (
         <Pressable
@@ -474,28 +483,40 @@ export default function AddScreen() {
           <Text style={styles.secondaryText}>Cancelar recibo</Text>
         </Pressable>
       ) : null}
+      <Text style={styles.label}>Importe del gasto</Text>
       <TextInput
         accessibilityLabel="Monto gasto"
         keyboardType="number-pad"
         onChangeText={setExpenseAmount}
+        placeholder="Ej. 12500"
+        placeholderTextColor={colors.inkMuted}
         style={styles.input}
         value={expenseAmount}
       />
+      <Text style={styles.label}>Fecha del gasto</Text>
       <TextInput
         accessibilityLabel="Fecha gasto"
         onChangeText={setExpenseDate}
+        placeholder="AAAA-MM-DD"
+        placeholderTextColor={colors.inkMuted}
         style={styles.input}
         value={expenseDate}
       />
+      <Text style={styles.label}>Comercio o descripción</Text>
       <TextInput
         accessibilityLabel="Descripcion gasto"
         onChangeText={setExpenseDescription}
+        placeholder="Ej. Supermercado Central"
+        placeholderTextColor={colors.inkMuted}
         style={styles.input}
         value={expenseDescription}
       />
+      <Text style={styles.label}>Categoría</Text>
       <TextInput
         accessibilityLabel="Categoria gasto"
         onChangeText={setExpenseCategory}
+        placeholder="Ej. Comida"
+        placeholderTextColor={colors.inkMuted}
         style={styles.input}
         value={expenseCategory}
       />
@@ -625,6 +646,14 @@ const styles = StyleSheet.create({
   label: { color: colors.ink, fontFamily: fonts.bodyBold },
   alert: { color: colors.ink, fontFamily: fonts.bodyBold },
   importBox: { gap: 8 },
+  helper: { color: colors.inkMuted, fontFamily: fonts.body },
+  receiptPreview: { borderRadius: radii.lg, height: 210, width: "100%" },
+  receiptPreviewCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    gap: spacing[3],
+    padding: spacing[3],
+  },
   previewRow: {
     backgroundColor: colors.surface,
     borderColor: colors.border,

@@ -29,6 +29,7 @@ import { getProfile, updateProfile } from "./features/profile/profile.js";
 import {
   deleteReceiptAttachment,
   detectReceiptPendingMovement,
+  extractReceiptText,
   getReceiptAttachment,
   saveReceiptAttachment,
 } from "./features/receipts/receipts.js";
@@ -120,6 +121,7 @@ const app = createApp(
       listMovementHistory(database, userId, query),
   },
   {
+    extractText: extractReceiptText,
     detectReceiptPendingMovement: (userId, input) =>
       detectReceiptPendingMovement(database, userId, input),
     saveAttachment: (userId, expenseId, input) =>

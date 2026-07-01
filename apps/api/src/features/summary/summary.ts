@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { PrismaClient } from "../../generated/prisma/client.js";
 
 export const summaryPeriodSchema = z
-  .enum(["WEEKLY", "MONTHLY"])
+  .enum(["DAILY", "WEEKLY", "MONTHLY"])
   .default("MONTHLY");
 export type SummaryPeriod = z.infer<typeof summaryPeriodSchema>;
 
@@ -17,10 +17,7 @@ export async function getFinancialSummary(
     where: { id: userId },
     select: { timeZone: true },
   });
-  const { start, end } =
-    period === "WEEKLY"
-      ? weekBounds(referenceDate)
-      : monthBounds(referenceDate);
+  const { start, end } = periodBounds(period, referenceDate);
   const [incomes, expenses, budgets, savingsGoals] =
     await database.$transaction([
       database.income.findMany({
@@ -79,10 +76,7 @@ export async function getExpenseCategoryDistribution(
   period: SummaryPeriod = "MONTHLY",
   referenceDate = new Date(),
 ) {
-  const { start, end } =
-    period === "WEEKLY"
-      ? weekBounds(referenceDate)
-      : monthBounds(referenceDate);
+  const { start, end } = periodBounds(period, referenceDate);
   const expenses = await database.expense.findMany({
     where: { userId, date: { gte: start, lt: end } },
     select: { amountMinor: true, category: true },
@@ -126,6 +120,26 @@ function monthBounds(referenceDate: Date) {
     ),
   );
   return { start, end };
+}
+
+function dayBounds(referenceDate: Date) {
+  const start = new Date(
+    Date.UTC(
+      referenceDate.getUTCFullYear(),
+      referenceDate.getUTCMonth(),
+      referenceDate.getUTCDate(),
+    ),
+  );
+  const end = new Date(start);
+  end.setUTCDate(start.getUTCDate() + 1);
+  return { start, end };
+}
+
+function periodBounds(period: SummaryPeriod, referenceDate: Date) {
+  if (period === "DAILY") return dayBounds(referenceDate);
+  return period === "WEEKLY"
+    ? weekBounds(referenceDate)
+    : monthBounds(referenceDate);
 }
 
 function weekBounds(referenceDate: Date) {
