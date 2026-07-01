@@ -11,7 +11,7 @@
 # Retrospective: optional | done
 
 generated: 2026-06-20
-last_updated: 2026-06-25
+last_updated: 2026-06-30
 project: Smart Ant
 project_key: NOKEY
 tracking_system: file-system
@@ -66,3 +66,22 @@ development_status:
   7-2-anadir-observabilidad-y-proteccion-operativa: done
   7-3-ejecutar-gate-de-produccion: done
   epic-7-retrospective: done
+
+  epic-8: backlog
+  8-1-investigar-patrones-de-motivacion-financiera: backlog
+  8-2-definir-el-contrato-del-journey-y-rewards: backlog
+  8-3-recibir-un-siguiente-reto-adaptativo: backlog
+  8-4-obtener-xp-niveles-rachas-y-logros: backlog
+  8-5-completar-microlecciones-contextuales: backlog
+  8-6-consultar-el-recap-financiero-semanal: backlog
+  8-7-controlar-la-experiencia-de-gamificacion: backlog
+  8-8-disenar-las-superficies-de-motivacion: backlog
+  8-9-medir-motivacion-sin-patrones-manipulativos: backlog
+  epic-8-retrospective: optional
+
+  epic-9: backlog
+  9-1-validar-el-modelo-de-beneficios-locales: backlog
+  9-2-consultar-beneficios-disponibles: backlog
+  9-3-reclamar-un-beneficio: backlog
+  9-4-consultar-historial-y-resolver-incidencias: backlog
+  epic-9-retrospective: optional

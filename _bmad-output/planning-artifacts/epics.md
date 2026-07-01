@@ -1,13 +1,14 @@
 ---
 stepsCompleted: [1, 2, 3, 4]
 status: complete
-completedAt: 2026-06-20
+completedAt: 2026-06-30
 inputDocuments:
   - _bmad-output/planning-artifacts/prds/prd-smart-ant-2026-06-19/prd.md
   - _bmad-output/planning-artifacts/architecture.md
   - _bmad-output/planning-artifacts/briefs/brief-smart-ant-2026-06-19/brief.md
   - docs/development-standard.md
   - docs/production-readiness.md
+  - docs/design-system-philosophy.md
 ---
 
 # Smart Ant - Desglose de epics
@@ -53,6 +54,20 @@ Este documento descompone los requisitos del PRD y la arquitectura de Smart Ant 
 - FR-31: El usuario puede cambiar entre vista semanal y mensual.
 - FR-32: El usuario puede filtrar el historial por fecha, Categoría y tipo.
 - FR-33: El usuario puede consultar Gastos por Categoría.
+- FR-34: El usuario puede consultar su etapa actual de salud financiera y una siguiente acción recomendada.
+- FR-35: El usuario puede activar, cambiar u omitir un reto con objetivo, duración, progreso y recompensa transparentes.
+- FR-36: El sistema actualiza el progreso de retos únicamente mediante acciones financieras o educativas verificables.
+- FR-37: El usuario puede consultar XP, nivel, racha flexible, insignias y logros obtenidos o en progreso.
+- FR-38: El sistema permite recuperar una racha sin invalidar el progreso financiero acumulado.
+- FR-39: El usuario puede completar microlecciones y quizzes breves relacionados con su contexto financiero.
+- FR-40: El usuario recibe un recap semanal que explica acciones completadas, ahorro demostrado y oportunidades siguientes.
+- FR-41: El usuario puede consultar el historial y la explicación de cada reward obtenido, pendiente o reclamado.
+- FR-42: El usuario puede configurar frecuencia, animaciones y nivel de gamificación.
+- FR-43: El motor recomienda retos según onboarding, datos disponibles, metas, patrones recientes y preferencias, evitando repetición excesiva.
+- FR-44: El sistema distingue XP, puntos, insignias, ahorro demostrado y beneficios con valor real.
+- FR-45: Cuando existan alianzas verificadas, el usuario puede consultar y reclamar beneficios locales bajo condiciones explícitas.
+- FR-46: El usuario puede adjuntar opcionalmente una imagen de recibo a un gasto manual o detectado sin exigir OCR.
+- FR-47: El usuario puede consultar o eliminar la imagen adjunta sin eliminar el gasto ni alterar sus cálculos.
 
 ### Requisitos no funcionales
 
@@ -64,6 +79,14 @@ Este documento descompone los requisitos del PRD y la arquitectura de Smart Ant 
 - NFR-6: Controles con etiquetas, contraste suficiente y áreas táctiles apropiadas.
 - NFR-7: Errores backend incluyen `requestId` sin exponer datos privados.
 - NFR-8: TypeScript estricto, sin `any`, Biome y pruebas unitarias financieras.
+- NFR-9: La gamificación no recompensa gastar más, endeudarse ni el nivel absoluto de ingreso.
+- NFR-10: Toda recompensa explica su origen, condiciones, estado y si posee o no valor monetario.
+- NFR-11: El motor usa la cantidad mínima de datos personales necesaria y conserva el aislamiento por usuario.
+- NFR-12: Rachas, celebraciones y progreso cumplen reducción de movimiento, lector de pantalla y alternativas no cromáticas.
+- NFR-13: Los eventos que otorgan progreso son idempotentes y auditables para evitar duplicación o fraude.
+- NFR-14: Las reglas de rewards son deterministas y versionadas para poder explicar resultados históricos.
+- NFR-15: Calcular el siguiente reto y el resumen de progreso no degrada perceptiblemente la carga normal de Inicio.
+- NFR-16: Las imágenes de recibos usan almacenamiento privado, acceso por propietario y una política explícita de retención y eliminación.
 
 ### Requisitos adicionales de arquitectura
 
@@ -84,6 +107,13 @@ Este documento descompone los requisitos del PRD y la arquitectura de Smart Ant 
 - AR-15: Archivos `.env*.example` documentan entornos sin incluir secretos.
 - AR-16: OCR e importaciones producen Movimientos pendientes antes de persistir Gastos.
 - AR-17: No usar Redis, colas, microservicios ni Docker en el MVP salvo necesidad demostrada.
+- AR-18: El dominio de motivación consume eventos verificados de funcionalidades existentes sin duplicar reglas financieras.
+- AR-19: El otorgamiento y reclamación de rewards usa un ledger persistente e idempotente por usuario, evento y regla.
+- AR-20: Las reglas de retos, XP y logros tienen identificador y versión; no se dispersan como constantes de UI.
+- AR-21: XP, puntos virtuales, ahorro demostrado y beneficios reales usan tipos y presentación separados.
+- AR-22: Beneficios locales, cashback y canjes permanecen desactivados mediante feature flag hasta existir soporte operativo y legal.
+- AR-23: La primera versión del recomendador usa reglas simples y explicables; no requiere ML, colas ni servicios adicionales.
+- AR-24: El entorno demo se prepara con un seed idempotente de datos realistas que nunca se ejecuta para usuarios reales.
 
 ### Requisitos UX
 
@@ -95,6 +125,17 @@ Este documento descompone los requisitos del PRD y la arquitectura de Smart Ant 
 - UX-DR6: Toda superficie asíncrona define carga, vacío, error, éxito y estado deshabilitado.
 - UX-DR7: Las confirmaciones riesgosas requieren una segunda acción explícita.
 - UX-DR8: El diseño debe funcionar en Expo Go y cumplir accesibilidad móvil básica.
+- UX-DR9: Inicio muestra progreso financiero y un solo siguiente reto prioritario sin desplazar el resumen monetario principal.
+- UX-DR10: Cada reto muestra acción, razón, duración, criterio de finalización, progreso y reward.
+- UX-DR11: XP, nivel, racha, insignia, ahorro real y beneficio monetario nunca comparten una representación ambigua.
+- UX-DR12: Logros y rewards contemplan estados bloqueado, disponible, activo, completado, expirado, reclamable y reclamado.
+- UX-DR13: Perder una racha usa lenguaje neutral y ofrece recuperación; no utiliza culpa ni patrones manipulativos.
+- UX-DR14: Las celebraciones son breves, interrumpibles y compatibles con reducción de movimiento.
+- UX-DR15: El usuario puede entender por qué se recomendó un reto y cambiarlo u omitirlo.
+- UX-DR16: Microlecciones duran aproximadamente un minuto y conectan el concepto con una acción aplicable.
+- UX-DR17: El recap semanal prioriza impacto financiero real sobre puntos virtuales.
+- UX-DR18: El design system incluye componentes y estados para journey, retos, progreso, rewards, lecciones y beneficios locales.
+- UX-DR19: Añadir gasto ofrece por separado captura manual, escaneo para prellenar y adjunto opcional de imagen.
 
 ### Mapa de cobertura FR
 
@@ -131,6 +172,20 @@ Este documento descompone los requisitos del PRD y la arquitectura de Smart Ant 
 - FR-31: Epic 4 - Periodo semanal/mensual.
 - FR-32: Epic 4 - Historial filtrable.
 - FR-33: Epic 4 - Distribución por Categoría.
+- FR-34: Epic 8 - Etapa financiera y siguiente acción recomendada.
+- FR-35: Epic 8 - Activación, cambio u omisión de retos transparentes.
+- FR-36: Epic 8 - Progreso basado en acciones verificables.
+- FR-37: Epic 8 - XP, nivel, racha, insignias y logros.
+- FR-38: Epic 8 - Recuperación flexible de racha.
+- FR-39: Epic 8 - Microlecciones y quizzes contextuales.
+- FR-40: Epic 8 - Recap semanal con impacto financiero.
+- FR-41: Epic 8 - Historial y explicación de rewards.
+- FR-42: Epic 8 - Preferencias de gamificación y movimiento.
+- FR-43: Epic 8 - Recomendación explicable y no repetitiva de retos.
+- FR-44: Epic 8 - Separación entre progreso virtual, ahorro y valor real.
+- FR-45: Epic 9 - Beneficios locales verificados y reclamables.
+- FR-46: Epic 5 - Imagen de recibo opcional para gastos manuales o detectados.
+- FR-47: Epic 5 - Consulta y eliminación independiente del adjunto.
 
 ## Lista de epics
 
@@ -162,7 +217,7 @@ El usuario puede comprender su situación financiera mediante el panel, vistas p
 
 El usuario puede tomar o seleccionar una fotografía, revisar los datos detectados y convertirlos de forma segura en un Gasto.
 
-**FR cubiertos:** FR-12, FR-13, FR-14, FR-15.
+**FR cubiertos:** FR-12, FR-13, FR-14, FR-15, FR-46, FR-47.
 
 ### Epic 6: Importación masiva
 
@@ -175,6 +230,18 @@ El usuario puede importar CSV/XLSX, asignar columnas, corregir problemas y confi
 El producto queda verificable y desplegable en Railway con configuración segura, migraciones, CI y observabilidad.
 
 **FR cubiertos:** ninguno; realiza NFR-1 a NFR-8 y AR-13 a AR-15.
+
+### Epic 8: Progreso financiero guiado
+
+El usuario puede convertir acciones financieras y educativas verificables en un journey adaptativo con retos, microlecciones, XP, niveles, rachas flexibles, logros y recaps que muestran progreso real sin recurrir a patrones manipulativos.
+
+**FR cubiertos:** FR-34, FR-35, FR-36, FR-37, FR-38, FR-39, FR-40, FR-41, FR-42, FR-43, FR-44.
+
+### Epic 9: Beneficios financieros locales
+
+El usuario puede consultar y reclamar beneficios reales de comercios aliados cuando existan acuerdos verificados, con condiciones transparentes, trazabilidad y controles contra duplicación o fraude.
+
+**FR cubiertos:** FR-45.
 
 ## Epic 1: Fundación y acceso personal
 
@@ -723,6 +790,36 @@ para evitar que un error afecte mis finanzas.
 **cuando** vence la política de retención o el usuario solicita su eliminación
 **entonces** se elimina sin borrar el Gasto confirmado.
 
+### Story 5.4: Adjuntar una imagen opcional al gasto
+
+**Requisitos:** FR-46, FR-47, NFR-2, NFR-16, UX-DR19.
+
+Como usuario,
+quiero adjuntar opcionalmente una imagen de recibo a un gasto,
+para conservar evidencia aunque prefiera llenar el formulario manualmente.
+
+**Criterios de aceptación:**
+
+**Dado** el formulario de gasto manual
+**cuando** el usuario decide no escanear un recibo
+**entonces** puede completar y confirmar el gasto sin imagen
+**y** también puede adjuntar una imagen como dato opcional.
+
+**Dado** una imagen elegida para OCR
+**cuando** se detectan campos completos o parciales
+**entonces** el formulario se prellena y permanece editable antes de confirmar
+**y** la imagen puede conservarse como adjunto si el usuario lo elige.
+
+**Dado** que OCR falla o no se solicita
+**cuando** el usuario continúa
+**entonces** puede llenar monto, fecha, descripción y categoría manualmente
+**y** la imagen opcional no bloquea ni sustituye la validación del gasto.
+
+**Dado** un gasto con imagen adjunta
+**cuando** el usuario consulta o elimina el adjunto
+**entonces** solo el propietario puede acceder a la imagen
+**y** eliminarla no borra el gasto ni altera cálculos financieros.
+
 ## Epic 6: Importación masiva
 
 El usuario puede importar CSV/XLSX, asignar columnas, corregir problemas y confirmar movimientos sin duplicados silenciosos.
@@ -930,3 +1027,296 @@ para habilitarlo con riesgo controlado.
 **cuando** se revisa preparación
 **entonces** no hay secretos versionados
 **y** respaldo y recuperación están documentados.
+
+### Story 7.4: Preparar datos realistas para la cuenta demo
+
+**Requisitos:** AR-24.
+
+Como responsable de revisión,
+quiero una cuenta demo con datos financieros realistas,
+para recorrer, editar y ampliar todas las funciones sin configuración manual inicial.
+
+**Criterios de aceptación:**
+
+**Dado** la cuenta demo conocida
+**cuando** se ejecuta el seed
+**entonces** existen perfil, ingresos, salario, gastos, categorías, presupuestos y metas representativos
+**y** los datos cubren estados activos, pausados, cercanos al límite y vacíos cuando sea útil.
+
+**Dado** que el seed se ejecuta varias veces
+**cuando** termina
+**entonces** no duplica registros ni cambia identificadores de referencia innecesariamente
+**y** restaura credenciales demo válidas.
+
+**Dado** la cuenta demo preparada
+**cuando** el revisor usa la app
+**entonces** puede consultar, editar, eliminar y agregar datos
+**y** ninguna operación afecta cuentas reales.
+
+## Epic 8: Progreso financiero guiado
+
+El usuario convierte acciones financieras y educativas verificables en un journey adaptativo con retos, microlecciones, XP, niveles, rachas flexibles, logros y recaps, sin patrones manipulativos.
+
+### Story 8.1: Investigar patrones de motivación financiera
+
+**Requisitos:** FR-34 a FR-44, NFR-9 a NFR-15, UX-DR9 a UX-DR18.
+
+Como responsable de producto,
+quiero una investigación trazable sobre gamificación, hábitos y ahorro,
+para adoptar patrones eficaces sin copiar interfaces ni introducir mecánicas perjudiciales.
+
+**Criterios de aceptación:**
+
+**Dado** que no existe una estrategia validada de rewards
+**cuando** se investigan fuentes oficiales, académicas y productos como Duolingo y Candy Crush
+**entonces** se documentan patrones aplicables, evidencia, límites y riesgos con fuentes directas
+**y** se distingue evidencia experimental, correlación e inferencia.
+
+**Dado** el contexto de San Ramón
+**cuando** se sintetizan los hallazgos
+**entonces** se generan hipótesis verificables para retos, microlecciones, recibos y beneficios locales
+**y** no se presentan cashback o alianzas como funciones disponibles.
+
+### Story 8.2: Definir el contrato del journey y rewards
+
+**Requisitos:** FR-36, FR-41, FR-44, NFR-10, NFR-13, NFR-14, AR-18 a AR-21.
+
+Como usuario,
+quiero que mi progreso tenga reglas claras y consistentes,
+para confiar en lo que significa cada reto, punto, nivel o recompensa.
+
+**Criterios de aceptación:**
+
+**Dado** las acciones financieras actuales
+**cuando** se define el dominio de motivación
+**entonces** existen contratos versionados para journey, reto, evento, reward, perfil y ledger
+**y** no se duplican las reglas financieras existentes.
+
+**Dado** un evento repetido por reintento
+**cuando** se procesa
+**entonces** no duplica progreso ni rewards
+**y** XP, puntos, ahorro demostrado y valor real permanecen separados y auditables.
+
+### Story 8.3: Recibir un siguiente reto adaptativo
+
+**Requisitos:** FR-34, FR-35, FR-43, AR-23, UX-DR9, UX-DR10, UX-DR15.
+
+Como usuario,
+quiero recibir una acción pequeña y relevante para mi situación,
+para saber qué hacer después para mejorar mi salud financiera.
+
+**Criterios de aceptación:**
+
+**Dado** el onboarding, datos, metas y actividad disponibles
+**cuando** se solicita el siguiente reto
+**entonces** reglas simples y explicables eligen una acción elegible y no repetitiva
+**y** nunca inventan información financiera.
+
+**Dado** un reto recomendado
+**cuando** se consulta
+**entonces** muestra acción, razón, duración, objetivo, progreso y reward
+**y** el usuario puede activarlo, cambiarlo u omitirlo.
+
+### Story 8.4: Obtener XP, niveles, rachas y logros
+
+**Requisitos:** FR-36, FR-37, FR-38, FR-41, NFR-9, NFR-13, UX-DR11 a UX-DR13.
+
+Como usuario,
+quiero reconocimiento por mantener hábitos financieros útiles,
+para percibir continuidad sin sentir castigo cuando interrumpo el uso.
+
+**Criterios de aceptación:**
+
+**Dado** una acción elegible verificada
+**cuando** se completa
+**entonces** el progreso se registra una sola vez y explica su origen
+**y** el perfil muestra XP, nivel, próxima meta, racha y logros.
+
+**Dado** una interrupción de racha
+**cuando** el usuario regresa
+**entonces** conserva XP, nivel y logros
+**y** puede recuperar la racha con lenguaje neutral cuando aplique.
+
+### Story 8.5: Completar microlecciones contextuales
+
+**Requisitos:** FR-39, NFR-11, UX-DR16.
+
+Como usuario,
+quiero aprender un concepto financiero en aproximadamente un minuto,
+para aplicarlo a una decisión real.
+
+**Criterios de aceptación:**
+
+**Dado** una necesidad contextual
+**cuando** se recomienda una microlección
+**entonces** se explica su relevancia usando el mínimo de datos personales
+**y** se distingue educación general de asesoría personalizada.
+
+**Dado** una lección activa
+**cuando** se completa o abandona
+**entonces** el quiz explica las respuestas y registra progreso idempotente
+**y** abandonar nunca bloquea funciones financieras.
+
+### Story 8.6: Consultar el recap financiero semanal
+
+**Requisitos:** FR-40, FR-44, UX-DR17.
+
+Como usuario,
+quiero entender qué logré durante la semana,
+para relacionar mis hábitos con resultados financieros concretos.
+
+**Criterios de aceptación:**
+
+**Dado** una semana con datos suficientes
+**cuando** se genera el recap
+**entonces** muestra acciones, evolución, ahorro demostrado y retos relevantes
+**y** diferencia resultados monetarios de XP o insignias.
+
+**Dado** una semana sin datos suficientes
+**cuando** se abre el recap
+**entonces** muestra un estado honesto y una siguiente acción alcanzable
+**y** no interpreta ausencia de datos como ahorro.
+
+### Story 8.7: Controlar la experiencia de gamificación
+
+**Requisitos:** FR-42, NFR-12, UX-DR13, UX-DR14.
+
+Como usuario,
+quiero ajustar retos, frecuencia y animaciones,
+para adaptar la motivación a mis preferencias y accesibilidad.
+
+**Criterios de aceptación:**
+
+**Dado** las preferencias de gamificación
+**cuando** se modifican
+**entonces** persisten por usuario y controlan frecuencia, animación y presencia de retos
+**y** desactivarlas no elimina progreso ni funciones financieras.
+
+**Dado** reducción de movimiento o lector de pantalla
+**cuando** aparece una celebración
+**entonces** existe una alternativa estática y anunciable
+**y** su significado no depende únicamente del color.
+
+### Story 8.8: Diseñar las superficies de motivación
+
+**Requisitos:** FR-34 a FR-44, UX-DR9 a UX-DR18.
+
+Como usuario,
+quiero una experiencia coherente para retos y progreso,
+para entenderla sin confundir rewards con dinero.
+
+**Criterios de aceptación:**
+
+**Dado** el design system aprobado
+**cuando** se especifican superficies de motivación
+**entonces** cubre journey, reto, progreso, XP, nivel, racha, logro, lección, recap y celebración
+**y** documenta todos sus estados interactivos y asíncronos.
+
+**Dado** las features actuales y futuras
+**cuando** se aplica el diseño
+**entonces** se preservan datos, acciones y flujos existentes
+**y** no se representa como disponible ninguna funcionalidad futura.
+
+### Story 8.9: Medir motivación sin patrones manipulativos
+
+**Requisitos:** NFR-9 a NFR-15.
+
+Como responsable de producto,
+quiero medir si la motivación mejora hábitos reales,
+para retirar mecánicas que solo aumentan uso vacío.
+
+**Criterios de aceptación:**
+
+**Dado** una feature motivacional
+**cuando** se define su medición
+**entonces** prioriza activación útil, constancia, presupuestos, metas y ahorro demostrado
+**y** no considera más gasto, deuda o tiempo vacío como éxito.
+
+**Dado** un experimento
+**cuando** se activa
+**entonces** posee hipótesis, métrica primaria, guardrails, duración y criterio de salida
+**y** puede desactivarse sin afectar datos financieros.
+
+## Epic 9: Beneficios financieros locales
+
+El usuario puede consultar y reclamar beneficios reales de comercios aliados cuando existan acuerdos verificados, con condiciones transparentes, trazabilidad y controles contra duplicación o fraude.
+
+### Story 9.1: Validar el modelo de beneficios locales
+
+**Requisitos:** FR-45, NFR-10, NFR-13, AR-22.
+
+Como responsable de producto,
+quiero validar las reglas operativas de beneficios locales,
+para no ofrecer recompensas que el producto o el comercio no puedan cumplir.
+
+**Criterios de aceptación:**
+
+**Dado** un beneficio propuesto
+**cuando** se evalúa para publicación
+**entonces** tiene comercio responsable, tipo, valor, elegibilidad, vigencia, límites y proceso de soporte
+**y** existe un acuerdo confirmado y trazable.
+
+**Dado** que faltan condiciones legales, operativas o antifraude
+**cuando** se revisa el beneficio
+**entonces** permanece desactivado
+**y** no aparece en la aplicación ni en comunicaciones al usuario.
+
+### Story 9.2: Consultar beneficios disponibles
+
+**Requisitos:** FR-45, NFR-10, NFR-11, AR-21, AR-22.
+
+Como usuario,
+quiero consultar beneficios locales realmente disponibles,
+para entender qué puedo obtener y bajo cuáles condiciones.
+
+**Criterios de aceptación:**
+
+**Dado** beneficios activos y elegibles
+**cuando** se abre el catálogo
+**entonces** se muestran comercio, tipo, valor, costo, condiciones, vigencia y disponibilidad
+**y** se pueden distinguir descuento, cashback y reward virtual.
+
+**Dado** un beneficio inactivo, vencido o no elegible
+**cuando** se consulta el catálogo
+**entonces** no se presenta como reclamable
+**y** cualquier estado visible explica la razón sin revelar reglas antifraude sensibles.
+
+### Story 9.3: Reclamar un beneficio
+
+**Requisitos:** FR-45, NFR-13, NFR-14, AR-19, AR-21, AR-22.
+
+Como usuario,
+quiero reclamar un beneficio de forma segura,
+para recibir exactamente lo ofrecido sin cobros o descuentos ambiguos.
+
+**Criterios de aceptación:**
+
+**Dado** un beneficio elegible y disponible
+**cuando** el usuario confirma el reclamo
+**entonces** se registra una sola operación en el ledger y se entrega una referencia verificable
+**y** la respuesta explica el valor, condiciones y siguiente paso.
+
+**Dado** un reintento, saldo insuficiente, límite alcanzado o beneficio vencido
+**cuando** se procesa el reclamo
+**entonces** no se duplica ni deja un estado parcial
+**y** el usuario recibe un error seguro y accionable.
+
+### Story 9.4: Consultar historial y resolver incidencias
+
+**Requisitos:** FR-45, NFR-10, NFR-11, NFR-13.
+
+Como usuario,
+quiero consultar el historial de mis beneficios,
+para verificar qué gané, reclamé, utilicé, venció o fue revertido.
+
+**Criterios de aceptación:**
+
+**Dado** operaciones de beneficios existentes
+**cuando** se abre el historial
+**entonces** cada entrada muestra estado, fecha, comercio, valor y referencia
+**y** los estados ganado, reclamado, usado, vencido y revertido son inequívocos.
+
+**Dado** una incidencia
+**cuando** el usuario solicita ayuda
+**entonces** puede compartir una referencia sin exponer secretos ni datos financieros innecesarios
+**y** una reversión conserva el historial auditable.
