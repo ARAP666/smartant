@@ -1,6 +1,10 @@
+---
+baseline_commit: d51086d
+---
+
 # Story 8.1: Investigar patrones de motivación financiera
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -17,29 +21,29 @@ para adoptar patrones eficaces sin copiar interfaces ni introducir mecánicas pe
 
 ## Tasks / Subtasks
 
-- [ ] Crear una matriz de evidencia y fuentes (AC: 1)
-  - [ ] Priorizar publicaciones oficiales, papers revisados por pares, organismos públicos y documentación primaria.
-  - [ ] Registrar fecha, tipo de evidencia, población, resultado, limitaciones y aplicabilidad a Smart Ant.
-  - [ ] Separar claramente hechos, inferencias e hipótesis.
-- [ ] Analizar patrones de productos de referencia (AC: 1, 4)
-  - [ ] Duolingo: onboarding, objetivo diario, rachas, quests, ligas, XP, recuperación y celebraciones.
-  - [ ] Candy Crush: mapa de progreso, niveles cortos, feedback, dificultad, objetivos visibles y retorno; excluir monetización coercitiva, vidas artificiales y presión de compra.
-  - [ ] Productos financieros gamificados: ahorro, presupuestos, retos, educación breve y rewards.
-- [ ] Investigar ciencia de comportamiento y riesgos (AC: 1, 4)
-  - [ ] Revisar metas pequeñas, feedback inmediato, hábitos, autonomía, motivación intrínseca/extrínseca y efectos de pérdida.
-  - [ ] Revisar efectos adversos: culpa, ansiedad financiera, dark patterns, sesgo por ingreso, sobreuso y confusión entre puntos y dinero.
-- [ ] Investigar contexto aplicable a Costa Rica y San Ramón (AC: 2)
-  - [ ] Buscar datos oficiales sobre inclusión, alfabetización y uso de servicios financieros digitales.
-  - [ ] Convertir señales locales en hipótesis que requieran validación, no en conclusiones no demostradas.
-- [ ] Sintetizar la estrategia de Smart Ant (AC: 2, 3, 4)
-  - [ ] Definir patrones recomendados, patrones prohibidos y condiciones de uso.
-  - [ ] Proponer un journey adaptativo y una taxonomía de retos sin implementar reglas todavía.
-  - [ ] Definir métricas de comportamiento financiero y guardrails éticos.
-  - [ ] Preparar preguntas y pruebas de campo para San Ramón.
-- [ ] Guardar y validar entregables (AC: 1-4)
-  - [ ] Crear `docs/research/financial-motivation-research.md` con citas cercanas a cada afirmación.
-  - [ ] Actualizar `docs/design-system-philosophy.md` solamente con conclusiones respaldadas y requisitos de diseño.
-  - [ ] Verificar que todos los enlaces sean directos, las fuentes soporten la afirmación y no existan citas inventadas.
+- [x] Crear una matriz de evidencia y fuentes (AC: 1)
+  - [x] Priorizar publicaciones oficiales, papers revisados por pares, organismos públicos y documentación primaria.
+  - [x] Registrar fecha, tipo de evidencia, población, resultado, limitaciones y aplicabilidad a Smart Ant.
+  - [x] Separar claramente hechos, inferencias e hipótesis.
+- [x] Analizar patrones de productos de referencia (AC: 1, 4)
+  - [x] Duolingo: onboarding, objetivo diario, rachas, quests, ligas, XP, recuperación y celebraciones.
+  - [x] Candy Crush: mapa de progreso, niveles cortos, feedback, dificultad, objetivos visibles y retorno; excluir monetización coercitiva, vidas artificiales y presión de compra.
+  - [x] Productos financieros gamificados: ahorro, presupuestos, retos, educación breve y rewards.
+- [x] Investigar ciencia de comportamiento y riesgos (AC: 1, 4)
+  - [x] Revisar metas pequeñas, feedback inmediato, hábitos, autonomía, motivación intrínseca/extrínseca y efectos de pérdida.
+  - [x] Revisar efectos adversos: culpa, ansiedad financiera, dark patterns, sesgo por ingreso, sobreuso y confusión entre puntos y dinero.
+- [x] Investigar contexto aplicable a Costa Rica y San Ramón (AC: 2)
+  - [x] Buscar datos oficiales sobre inclusión, alfabetización y uso de servicios financieros digitales.
+  - [x] Convertir señales locales en hipótesis que requieran validación, no en conclusiones no demostradas.
+- [x] Sintetizar la estrategia de Smart Ant (AC: 2, 3, 4)
+  - [x] Definir patrones recomendados, patrones prohibidos y condiciones de uso.
+  - [x] Proponer un journey adaptativo y una taxonomía de retos sin implementar reglas todavía.
+  - [x] Definir métricas de comportamiento financiero y guardrails éticos.
+  - [x] Preparar preguntas y pruebas de campo para San Ramón.
+- [x] Guardar y validar entregables (AC: 1-4)
+  - [x] Crear `docs/research/financial-motivation-research.md` con citas cercanas a cada afirmación.
+  - [x] Actualizar `docs/design-system-philosophy.md` solamente con conclusiones respaldadas y requisitos de diseño.
+  - [x] Verificar que todos los enlaces sean directos, las fuentes soporten la afirmación y no existan citas inventadas.
 
 ## Dev Notes
 
@@ -81,7 +85,23 @@ GPT-5 Codex
 
 ### Debug Log References
 
+- `npm.cmd test`: 44 archivos, 110 pruebas aprobadas.
+- `npm.cmd run lint`: aprobado después de normalizar `railway.json` con Biome.
+
 ### Completion Notes List
+
+- Investigación comparativa completada con fuentes oficiales, académicas, públicas y de producto.
+- Estrategia sintetizada para Smart Ant con métricas, guardrails, hipótesis locales y anti-patrones.
+- Brief de diseño actualizado con fundamento de evidencia, presupuestos por categoría e identidad `SMA`/`SmartAnt`.
 
 ### File List
 
+- docs/research/financial-motivation-research.md
+- docs/design-system-philosophy.md
+- railway.json
+- _bmad-output/implementation-artifacts/8-1-investigar-patrones-de-motivacion-financiera.md
+- _bmad-output/implementation-artifacts/sprint-status.yaml
+
+### Change Log
+
+- 2026-06-30: Investigación de motivación financiera completada y preparada para revisión.

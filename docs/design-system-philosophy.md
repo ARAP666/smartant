@@ -164,6 +164,21 @@ El diseñador puede cuestionar la forma visual de rewards, pero no debe inventar
 
 Rewards debe ser un sistema de acompañamiento, no una colección decorativa de insignias. Su objetivo es ayudar a la persona a repetir acciones financieramente útiles y mostrarle resultados reales.
 
+La base de evidencia y sus límites están documentados en [Investigación de motivación financiera](research/financial-motivation-research.md). El diseño debe aplicar sus conclusiones sin copiar interfaces de referencia.
+
+### Identidad verbal y visual requerida
+
+- usar `SMA` cuando el espacio sea pequeño y `SmartAnt` cuando permita el nombre completo;
+- mantener una misma construcción tipográfica reconocible entre splash, preview, marca e iconografía futura;
+- desarrollar lettering original para la marca, no una selección genérica de fuente;
+- diferenciar `Smart` y `Ant` mediante dos tonos dentro de una línea visual única;
+- diseñar primero el wordmark y sus reglas de reducción;
+- no generar ni cerrar el icono de aplicación hasta que el sistema visual y los mockups estén validados.
+
+### Presupuestos por categoría
+
+El diseño debe hacer explícitos presupuestos separados para comida, ocio, transporte, servicios y categorías configurables. La API ya admite presupuesto con categoría opcional; los presets visuales no deben impedir categorías creadas por el usuario.
+
 ### Principios de comportamiento
 
 - premiar acciones bajo control del usuario, no su nivel de ingreso;
