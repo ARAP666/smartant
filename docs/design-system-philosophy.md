@@ -4,9 +4,44 @@
 
 Este documento sirve como contexto para que un diseñador proponga un sistema visual nuevo. Describe cómo está construida la aplicación y qué debe preservar. No prescribe colores, tipografías ni una dirección estética.
 
+También define la intención del producto, sus datos, features actuales y evolución prevista. Debe permitir diseñar el sistema visual real sin confundir funcionalidades ya implementadas con conceptos futuros.
+
 ## Producto
 
 Smart Ant es una aplicación móvil de finanzas personales. Su experiencia principal debe permitir entender el estado financiero y registrar movimientos con poca fricción, incluso durante uso frecuente y rápido.
+
+No pretende ser únicamente un registro de gastos ni un curso de educación financiera. Su visión es funcionar como un acompañante de salud financiera que convierte acciones pequeñas —registrar, clasificar, ahorrar, respetar un presupuesto o completar una lección— en progreso visible y motivación sostenida.
+
+La hipótesis central es:
+
+> Si una persona puede entender su situación, completar una acción útil en pocos minutos y recibir evidencia inmediata de avance, tendrá más razones para volver y mejorar su comportamiento financiero.
+
+El producto debe equilibrar tres capas:
+
+1. **Utilidad inmediata:** capturar movimientos, leer recibos, visualizar dinero y tomar decisiones.
+2. **Formación breve:** explicar conceptos financieros en piezas pequeñas y aplicables.
+3. **Motivación:** retos, progreso, rachas, logros y recompensas vinculadas con hábitos saludables.
+
+## Contexto de mercado aportado
+
+La visión inicial está enfocada en San Ramón de Alajuela y parte de las siguientes señales aportadas por el proyecto:
+
+- existe una población cantonal amplia y actividad relevante de pymes y emprendimientos;
+- hay interés regional por inclusión financiera y herramientas prácticas;
+- el obstáculo no es solamente falta de información, sino aburrimiento, fricción y baja constancia;
+- un formato parecido a “Duolingo para finanzas” puede reducir ese rechazo mediante progreso, metas pequeñas, rachas e insignias;
+- una propuesta híbrida —control de gastos, retos y beneficios visibles— tiene más potencial que una aplicación puramente educativa;
+- comercios y emprendimientos locales podrían participar posteriormente mediante beneficios o alianzas.
+
+Estas señales son hipótesis de producto que deben validarse con usuarios. El diseño debe permitir probarlas sin asumir que cashback, alianzas o premios monetarios ya están disponibles.
+
+### Preguntas de validación prioritarias
+
+1. ¿Cómo registran hoy sus gastos y qué fricción les impide mantener el hábito?
+2. ¿Qué motiva más: ahorro demostrado, cashback, metas, rachas, insignias o beneficios locales?
+3. ¿Usarían un lector de recibos si reduce trabajo y produce un beneficio tangible?
+4. ¿Prefieren retos de comportamiento, microlecciones o una combinación?
+5. ¿Qué tipo de recompensa genera confianza sin incentivar consumo innecesario?
 
 La arquitectura de navegación actual tiene cinco áreas persistentes:
 
@@ -124,6 +159,181 @@ type RewardProfile = {
 ```
 
 El diseñador puede cuestionar la forma visual de rewards, pero no debe inventar reglas económicas, premios monetarios ni mecánicas manipulativas.
+
+## Sistema dinámico de motivación y rewards
+
+Rewards debe ser un sistema de acompañamiento, no una colección decorativa de insignias. Su objetivo es ayudar a la persona a repetir acciones financieramente útiles y mostrarle resultados reales.
+
+### Principios de comportamiento
+
+- premiar acciones bajo control del usuario, no su nivel de ingreso;
+- reconocer constancia, aprendizaje y mejora relativa;
+- nunca recompensar gastar más, endeudarse o abrir la app sin propósito;
+- evitar castigos severos por perder una racha;
+- explicar qué acción generó progreso y qué beneficio produjo;
+- relacionar la recompensa con datos reales: dinero ahorrado, presupuesto respetado, gastos clasificados o metas avanzadas;
+- permitir pausar, silenciar o reducir gamificación;
+- diferenciar con claridad puntos virtuales, descuentos, cashback y dinero real;
+- no prometer recompensas patrocinadas hasta que exista una alianza confirmada.
+
+### Roadmap dinámico
+
+El roadmap no debe ser una secuencia rígida para todos. La aplicación debe recomendar el siguiente paso según los datos y el comportamiento disponible.
+
+#### Etapa 0 — Activación
+
+Objetivo: llevar a la primera evidencia de valor.
+
+- completar perfil financiero;
+- registrar o importar el primer movimiento;
+- clasificar gastos iniciales;
+- mostrar el primer resumen;
+- elegir una meta sencilla.
+
+La interfaz debe mostrar pocas acciones, progreso claro y una salida evidente hacia el uso normal.
+
+#### Etapa 1 — Crear conciencia
+
+Objetivo: lograr que la persona vea patrones reales.
+
+- registrar movimientos durante varios días;
+- escanear o importar recibos;
+- revisar categorías;
+- completar un reto corto de observación;
+- recibir una microlección relacionada con sus datos.
+
+Ejemplos: “Clasifica tres movimientos”, “Revisa tus gastos hormiga” o “Completa tu primera semana de registro”.
+
+#### Etapa 2 — Construir control
+
+Objetivo: pasar de observar a decidir.
+
+- crear el primer presupuesto;
+- configurar salario o ingresos frecuentes;
+- definir una meta de ahorro;
+- completar retos semanales;
+- comparar el periodo actual con el anterior.
+
+#### Etapa 3 — Sostener el hábito
+
+Objetivo: mantener constancia sin volver repetitiva la experiencia.
+
+- rachas flexibles basadas en acciones útiles;
+- retos adaptados al historial;
+- recuperación amable de racha;
+- logros por consistencia y mejora;
+- recap semanal con impacto concreto.
+
+#### Etapa 4 — Optimizar
+
+Objetivo: ayudar a mejorar decisiones específicas.
+
+- detectar categorías fuera de presupuesto;
+- sugerir retos ajustados a patrones;
+- avanzar metas con mayor intención;
+- ofrecer microlecciones contextuales;
+- mostrar escenarios y progreso acumulado.
+
+#### Etapa 5 — Beneficios externos
+
+Objetivo: conectar hábitos saludables con valor local verificable.
+
+- catálogo de beneficios de comercios aliados;
+- descuentos o recompensas con condiciones transparentes;
+- cashback solamente cuando exista soporte operativo real;
+- campañas locales limitadas;
+- historial de beneficio ganado y utilizado.
+
+Esta etapa depende de validación, acuerdos comerciales, prevención de fraude y reglas legales. No forma parte del producto actual.
+
+### Selección del siguiente reto
+
+El futuro motor puede ordenar retos usando señales simples antes de introducir algoritmos complejos:
+
+1. onboarding incompleto;
+2. datos insuficientes para producir un resumen útil;
+3. presupuesto o meta inexistente;
+4. acción pendiente de revisión;
+5. patrón reciente que puede mejorarse;
+6. preferencia declarada por ahorro, control o aprendizaje;
+7. reto repetido recientemente, que debe perder prioridad.
+
+La recomendación debe incluir siempre:
+
+- acción concreta;
+- duración estimada;
+- progreso y criterio de finalización;
+- razón de la recomendación;
+- beneficio financiero esperado;
+- reward otorgado;
+- opción de cambiar o rechazar el reto.
+
+### Tipos de retos
+
+- **Captura:** registrar, escanear o importar movimientos.
+- **Orden:** clasificar, corregir o revisar información pendiente.
+- **Conciencia:** identificar gastos, revisar un resumen o comparar periodos.
+- **Control:** crear o respetar un presupuesto.
+- **Ahorro:** avanzar una meta o completar un periodo con ahorro positivo.
+- **Aprendizaje:** microlección o quiz de aproximadamente un minuto.
+- **Constancia:** repetir una acción útil durante un periodo razonable.
+- **Local:** actividad asociada a un beneficio confirmado de un aliado.
+
+### Economía de rewards
+
+El sistema debe distinguir:
+
+- **XP:** representa aprendizaje y progreso general; no tiene valor monetario.
+- **Puntos:** unidad canjeable solamente si existe un catálogo y reglas definidas.
+- **Insignias:** reconocimiento permanente de un hito.
+- **Racha:** continuidad flexible de hábitos útiles.
+- **Ahorro demostrado:** resultado financiero real, separado de cualquier punto.
+- **Beneficio local:** descuento, premio o cashback provisto por un aliado y sujeto a condiciones.
+
+No deben mezclarse visualmente estas unidades. El usuario debe saber siempre qué tiene valor real y qué es progreso dentro de la aplicación.
+
+### Estados del journey
+
+```ts
+type FinancialJourney = {
+  stage: "ACTIVATION" | "AWARENESS" | "CONTROL" | "HABIT" | "OPTIMIZATION";
+  completedActions: string[];
+  recommendedChallengeId: string | null;
+  weeklyProgress: number;
+  savedAmountMinor: string;
+};
+
+type Challenge = {
+  id: string;
+  type: "CAPTURE" | "ORGANIZE" | "AWARENESS" | "CONTROL" | "SAVING" | "LEARNING" | "CONSISTENCY" | "LOCAL";
+  title: string;
+  description: string;
+  reason: string;
+  estimatedMinutes: number;
+  progress: number;
+  target: number;
+  status: "AVAILABLE" | "ACTIVE" | "COMPLETED" | "EXPIRED" | "SKIPPED";
+  rewardIds: string[];
+  startsAt: string | null;
+  endsAt: string | null;
+};
+```
+
+Estos tipos son contratos conceptuales para diseñar pantallas y componentes. No representan todavía modelos persistidos ni autorización para implementarlos.
+
+### Superficies de producto para motivación
+
+- resumen de progreso en Inicio;
+- siguiente reto recomendado;
+- detalle y progreso del reto activo;
+- recap semanal con ahorro y acciones completadas;
+- perfil de nivel, XP y racha;
+- colección de logros;
+- historial de rewards;
+- microlección contextual;
+- celebración breve al completar un hito;
+- catálogo y detalle de beneficio local futuro;
+- ajustes para frecuencia, animación y gamificación.
 
 ## Datos que maneja la interfaz
 
