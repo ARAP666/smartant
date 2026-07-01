@@ -1,28 +1,17 @@
 import "dotenv/config";
+import argon2 from "argon2";
 import { parseConfig } from "../src/config.js";
-import { loginUser } from "../src/features/auth/login.js";
-import { registerUser } from "../src/features/auth/register.js";
 import { createDatabase } from "../src/shared/db.js";
 
 const email = "demo@smartant.local";
 const password = "SmartAntDemo2026!";
 const database = createDatabase(parseConfig(process.env));
+const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
 
-try {
-  await registerUser(database, { email, password });
-} catch (error) {
-  if (!isEmailConflict(error)) throw error;
-}
-
-await loginUser(database, { email, password });
+await database.user.upsert({
+  where: { email },
+  create: { email, passwordHash },
+  update: { passwordHash },
+});
 console.log(`Demo account ready: ${email} / ${password}`);
 await database.$disconnect();
-
-function isEmailConflict(error: unknown) {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "EMAIL_ALREADY_REGISTERED"
-  );
-}
