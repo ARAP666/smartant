@@ -19,4 +19,4 @@ RUN npm run prisma:generate --workspace @smart-ant/api
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start", "--workspace", "@smart-ant/api"]
+CMD ["sh", "-c", "npm run seed:demo --workspace @smart-ant/api && npm run start --workspace @smart-ant/api"]

@@ -5,10 +5,7 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "preDeployCommand": [
-      "npm run db:migrate --workspace @smart-ant/api",
-      "npm run seed:demo --workspace @smart-ant/api"
-    ],
+    "preDeployCommand": ["npm run db:migrate --workspace @smart-ant/api"],
     "healthcheckPath": "/api/v1/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
